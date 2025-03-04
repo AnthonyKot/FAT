@@ -8,40 +8,70 @@ interface IncomeStatementProps {
   competitorData: CompanyData | null;
 }
 
-const IncomeStatement: React.FC<IncomeStatementProps> = ({ companyData, competitorData }) => {
-  const [timeframe, setTimeframe] = useState<'1Y' | '3Y' | '5Y'>('1Y');
-  
+const IncomeStatement: React.FC<IncomeStatementProps> = ({ companyData, competitorData }) => {  
   if (!companyData) return null;
   
   // Prepare chart data for revenue and profit
-  const revenueAndProfitChartData = {
-    labels: companyData.incomeStatement.revenue.map(item => item.year.toString()),
+  const revenueChartData = {
+    labels: companyData.incomeStatement.revenue.map(item => item.year.toString()).reverse(),
     datasets: [
       {
         label: `${companyData.company.name} - Revenue`,
-        data: companyData.incomeStatement.revenue.map(item => item.value),
+        data: companyData.incomeStatement.revenue.map(item => item.value).reverse(),
         backgroundColor: 'rgba(59, 130, 246, 0.5)',
         borderColor: 'rgb(59, 130, 246)',
         borderWidth: 2
       },
+      ...(competitorData ? [
+        {
+          label: `${competitorData.company.name} - Revenue`,
+          data: competitorData.incomeStatement.revenue.map(item => item.value).reverse(),
+          backgroundColor: 'rgba(239, 68, 68, 0.5)',
+          borderColor: 'rgb(239, 68, 68)',
+          borderWidth: 2
+        }
+      ] : [])
+    ]
+  };
+
+  // Prepare chart data for revenue and profit
+  const grossProfitChartData = {
+    labels: companyData.incomeStatement.revenue.map(item => item.year.toString()).reverse(),
+    datasets: [
       {
         label: `${companyData.company.name} - Gross Profit`,
-        data: companyData.incomeStatement.grossProfit.map(item => item.value),
+        data: companyData.incomeStatement.grossProfit.map(item => item.value).reverse(),
         backgroundColor: 'rgba(16, 185, 129, 0.5)',
         borderColor: 'rgb(16, 185, 129)',
         borderWidth: 2
       },
+      ...(competitorData ? [
+        {
+          label: `${competitorData.company.name} - Gross Profit`,
+          data: competitorData.incomeStatement.grossProfit.map(item => item.value).reverse(),
+          backgroundColor: 'rgba(239, 68, 68, 0.5)',
+          borderColor: 'rgb(239, 68, 68)',
+          borderWidth: 2
+        }
+      ] : [])
+    ]
+  };
+
+  // Prepare chart data for revenue and profit
+  const netIncomeChartData = {
+    labels: companyData.incomeStatement.revenue.map(item => item.year.toString()).reverse(),
+    datasets: [
       {
         label: `${companyData.company.name} - Net Income`,
-        data: companyData.incomeStatement.netIncome.map(item => item.value),
+        data: companyData.incomeStatement.netIncome.map(item => item.value).reverse(),
         backgroundColor: 'rgba(139, 92, 246, 0.5)',
         borderColor: 'rgb(139, 92, 246)',
         borderWidth: 2
       },
       ...(competitorData ? [
         {
-          label: `${competitorData.company.name} - Revenue`,
-          data: competitorData.incomeStatement.revenue.map(item => item.value),
+          label: `${competitorData.company.name} - Net Income`,
+          data: competitorData.incomeStatement.netIncome.map(item => item.value).reverse(),
           backgroundColor: 'rgba(239, 68, 68, 0.5)',
           borderColor: 'rgb(239, 68, 68)',
           borderWidth: 2
@@ -52,11 +82,11 @@ const IncomeStatement: React.FC<IncomeStatementProps> = ({ companyData, competit
   
   // Prepare chart data for EPS
   const epsChartData = {
-    labels: companyData.incomeStatement.eps.map(item => item.year.toString()),
+    labels: companyData.incomeStatement.eps.map(item => item.year.toString()).reverse(),
     datasets: [
       {
         label: `${companyData.company.name} - EPS`,
-        data: companyData.incomeStatement.eps.map(item => item.value),
+        data: companyData.incomeStatement.eps.map(item => item.value).reverse(),
         backgroundColor: 'rgba(59, 130, 246, 0.5)',
         borderColor: 'rgb(59, 130, 246)',
         borderWidth: 2
@@ -64,7 +94,7 @@ const IncomeStatement: React.FC<IncomeStatementProps> = ({ companyData, competit
       ...(competitorData ? [
         {
           label: `${competitorData.company.name} - EPS`,
-          data: competitorData.incomeStatement.eps.map(item => item.value),
+          data: competitorData.incomeStatement.eps.map(item => item.value).reverse(),
           backgroundColor: 'rgba(239, 68, 68, 0.5)',
           borderColor: 'rgb(239, 68, 68)',
           borderWidth: 2
@@ -81,68 +111,50 @@ const IncomeStatement: React.FC<IncomeStatementProps> = ({ companyData, competit
       </div>
       
       {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+      <div className="grid grid-cols-2 lg:grid-cols-2 gap-6 mb-8">
         <div className="bg-white dark:bg-dark-surface rounded-lg shadow dark:shadow-gray-800 p-6">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-semibold text-gray-800 dark:text-dark-text-primary">Revenue & Profit</h2>
-            <div className="flex space-x-2">
-              <button 
-                onClick={() => setTimeframe('1Y')} 
-                className={`px-2 py-1 text-xs rounded ${timeframe === '1Y' ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'}`}
-              >
-                1Y
-              </button>
-              <button 
-                onClick={() => setTimeframe('3Y')} 
-                className={`px-2 py-1 text-xs rounded ${timeframe === '3Y' ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'}`}
-              >
-                3Y
-              </button>
-              <button 
-                onClick={() => setTimeframe('5Y')} 
-                className={`px-2 py-1 text-xs rounded ${timeframe === '5Y' ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'}`}
-              >
-                5Y
-              </button>
-            </div>
-          </div>
           <FinancialChart 
-            chartData={revenueAndProfitChartData} 
+            chartData={netIncomeChartData} 
             chartType="bar"
             yAxisLabel="Amount ($)"
             tooltipPrefix="$"
             tooltipCallback={(value: number) => formatLargeNumber(value)}
-            title="Revenue and Profit"
+            title="Net incone"
+            termKey="netIncome"
+            description="Comparison of net income over time."
+            colorScheme="income"
+          />
+        </div>
+
+        <div className="bg-white dark:bg-dark-surface rounded-lg shadow dark:shadow-gray-800 p-6">
+          <FinancialChart 
+            chartData={grossProfitChartData} 
+            chartType="bar"
+            yAxisLabel="Amount ($)"
+            tooltipPrefix="$"
+            tooltipCallback={(value: number) => formatLargeNumber(value)}
+            title="Gross profit"
+            termKey="grossProfit"
+            description="Comparison of gross profit."
+            colorScheme="income"
+          />
+        </div>
+
+        <div className="bg-white dark:bg-dark-surface rounded-lg shadow dark:shadow-gray-800 p-6">
+          <FinancialChart 
+            chartData={revenueChartData} 
+            chartType="bar"
+            yAxisLabel="Amount ($)"
+            tooltipPrefix="$"
+            tooltipCallback={(value: number) => formatLargeNumber(value)}
+            title="Revenue"
             termKey="revenue"
-            description="Comparison of revenue, gross profit, and net income over time."
+            description="Comparison of revenue over time."
             colorScheme="income"
           />
         </div>
         
         <div className="bg-white dark:bg-dark-surface rounded-lg shadow dark:shadow-gray-800 p-6">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-semibold text-gray-800 dark:text-dark-text-primary">Earnings Per Share (EPS)</h2>
-            <div className="flex space-x-2">
-              <button 
-                onClick={() => setTimeframe('1Y')} 
-                className={`px-2 py-1 text-xs rounded ${timeframe === '1Y' ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'}`}
-              >
-                1Y
-              </button>
-              <button 
-                onClick={() => setTimeframe('3Y')} 
-                className={`px-2 py-1 text-xs rounded ${timeframe === '3Y' ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'}`}
-              >
-                3Y
-              </button>
-              <button 
-                onClick={() => setTimeframe('5Y')} 
-                className={`px-2 py-1 text-xs rounded ${timeframe === '5Y' ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'}`}
-              >
-                5Y
-              </button>
-            </div>
-          </div>
           <FinancialChart 
             chartData={epsChartData} 
             chartType="line"
@@ -159,7 +171,7 @@ const IncomeStatement: React.FC<IncomeStatementProps> = ({ companyData, competit
       {/* Income Statement Table */}
       <div className="bg-white dark:bg-dark-surface rounded-lg shadow dark:shadow-gray-800 overflow-hidden mb-8">
         <div className="px-6 py-4 border-b border-gray-200 dark:border-dark-border">
-          <h2 className="text-lg font-semibold text-gray-800 dark:text-dark-text-primary">Income Statement Details</h2>
+          <h2 className="text-lg font-semibold text-gray-800 dark:text-dark-text-primary">Income Statement Details {companyData.company.symbol}</h2>
         </div>
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200 dark:divide-dark-border">

@@ -316,10 +316,10 @@ export async function fetchCompanyData(ticker: string): Promise<CompanyData> {
     // Get stock price history for the last 12 months
     try {
       const today = new Date();
-      const oneYearAgo = new Date();
-      oneYearAgo.setFullYear(today.getFullYear() - 1);
+      const threeYearsAgo = new Date();
+      threeYearsAgo.setFullYear(today.getFullYear() - 3);
       
-      const fromDate = oneYearAgo.toISOString().split('T')[0]; // YYYY-MM-DD
+      const fromDate = threeYearsAgo.toISOString().split('T')[0]; // YYYY-MM-DD
       const toDate = today.toISOString().split('T')[0]; // YYYY-MM-DD
       
       const { getHistoricalStockPrices } = await import('./apiService');

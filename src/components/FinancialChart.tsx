@@ -4,7 +4,7 @@ import { Bar, Line } from 'react-chartjs-2';
 import { ChartData } from '../types';
 import ChartTooltip from './ChartTooltip';
 import { getTermDefinition } from '../utils/financialTerms';
-import { chartColorSchemes, getColorByIndex, getCompetitorColors } from '../utils/chartColors';
+import { chartColorSchemes, getColorByIndex } from '../utils/chartColors';
 
 // Register ChartJS components
 ChartJS.register(
@@ -48,8 +48,9 @@ const FinancialChart: React.FC<FinancialChartProps> = ({
   // Apply consistent colors based on the colorScheme prop or default to index-based colors
   const getChartColors = () => {
     // Get datasets separated by primary company and competitor
-    const primaryDatasets = chartData.datasets.filter(ds => !ds.label?.includes(' - ') || !ds.label?.includes(' vs '));
-    const competitorDatasets = chartData.datasets.filter(ds => ds.label?.includes(' - ') || ds.label?.includes(' vs '));
+    const labels = chartData.datasets.map(d => d.label);
+    const primaryDatasets = chartData.datasets.filter(ds => ds.label === labels[0]);
+    const competitorDatasets = chartData.datasets.filter(ds => ds.label === labels[1]);
     
     // Determine colors based on colorScheme or fallback to default pattern
     let colors: Array<{fill: string, border: string}> = [];
@@ -59,31 +60,21 @@ const FinancialChart: React.FC<FinancialChartProps> = ({
       colors = [...chartColorSchemes[colorScheme]];
     } else {
       // Fallback to getting colors by index
-      colors = primaryDatasets.map((_, index) => getColorByIndex(index));
+      colors = [0, 1].map(idx => getColorByIndex(idx));
     }
     
-    // Apply colors to primary datasets
-    const coloredPrimaryDatasets = primaryDatasets.map((dataset, index) => {
-      const colorIndex = index % colors.length;
-      return {
-        ...dataset,
-        backgroundColor: colors[colorIndex].fill,
-        borderColor: colors[colorIndex].border,
-        borderWidth: dataset.borderWidth || 2,
-      };
-    });
-    
-    // Apply colors to competitor datasets with dashed lines
-    const coloredCompetitorDatasets = competitorDatasets.map((dataset, index) => {
-      const colorIndex = index % colors.length;
-      return {
-        ...dataset,
-        backgroundColor: colors[colorIndex].fill,
-        borderColor: colors[colorIndex].border,
-        borderWidth: dataset.borderWidth || 2,
-        borderDash: [5, 5], // Add dashed lines to distinguish competitor data
-      };
-    });
+    const coloredPrimaryDatasets = [{
+      ...primaryDatasets[0],
+      backgroundColor: colors[0].fill,
+      borderColor: colors[0].border,
+    }];
+
+    const coloredCompetitorDatasets = [{
+      ...competitorDatasets[0],
+      backgroundColor: colors[1].fill,
+      borderColor: colors[1].border,
+      borderDash: [5, 5],
+    }];
     
     return [...coloredPrimaryDatasets, ...coloredCompetitorDatasets];
   };
@@ -110,7 +101,7 @@ const FinancialChart: React.FC<FinancialChartProps> = ({
     }
   }, [chartType, chartData]);
 
-  // Convert our custom data format to Chart.js format with consistent colors
+  // Convert custom data format to Chart.js format with consistent colors
   const data: ChartJSData<'line' | 'bar'> = {
     labels: chartData.labels,
     datasets: getChartColors().map(dataset => ({
@@ -186,7 +177,8 @@ const FinancialChart: React.FC<FinancialChartProps> = ({
     maintainAspectRatio: false,
     plugins: {
       legend: {
-        position: 'top' as const,
+        position: 'bottom' as const,
+        align: 'center' as const,
       },
       tooltip: enhancedTooltip as any
     },
@@ -219,7 +211,7 @@ const FinancialChart: React.FC<FinancialChartProps> = ({
         {chartType === 'line' ? (
           <Line 
             ref={chartRef}
-            data={data} 
+            data={data as ChartJSData<'line'>} 
             options={{
               ...options,
               plugins: {
@@ -229,13 +221,13 @@ const FinancialChart: React.FC<FinancialChartProps> = ({
                   labels: {
                     boxWidth: 10,
                     padding: 10,
-                    usePointStyle: true, // Use points instead of rectangles for better visibility
-                    color: 'rgb(55, 65, 81)', // Light mode text
-                    filter: (item, chart) => {
+                    usePointStyle: true,
+                    color: 'rgb(55, 65, 81)',
+                    filter: item => {
                       // Check for dark mode and update label colors
                       const darkMode = document.documentElement.classList.contains('dark');
                       if (darkMode) {
-                        item.color = 'rgb(229, 231, 235)'; // Dark mode text
+                        item.fontColor = 'rgb(229, 231, 235)'; // Dark mode text
                       }
                       return true;
                     },
@@ -284,25 +276,22 @@ const FinancialChart: React.FC<FinancialChartProps> = ({
         ) : (
           <Bar 
             ref={chartRef}
-            data={data} 
+            data={data as ChartJSData<'bar'>} 
             options={{
               ...options,
               plugins: {
                 ...options.plugins,
                 legend: {
                   ...options.plugins?.legend,
-                  position: 'top' as const,
-                  align: 'start' as const,
+                  position: 'bottom' as const,
                   labels: {
-                    boxWidth: 12,
-                    padding: 15,
-                    usePointStyle: true, // Use points instead of rectangles for better visibility
-                    color: 'rgb(55, 65, 81)', // Light mode text
-                    filter: (item, chart) => {
+                    usePointStyle: true,
+                    color: 'rgb(55, 65, 81)',
+                    filter: (item) => {
                       // Check for dark mode and update label colors
                       const darkMode = document.documentElement.classList.contains('dark');
                       if (darkMode) {
-                        item.color = 'rgb(229, 231, 235)'; // Dark mode text
+                        item.fontColor = 'rgb(229, 231, 235)'; // Dark mode text
                       }
                       return true;
                     },
@@ -316,7 +305,7 @@ const FinancialChart: React.FC<FinancialChartProps> = ({
                 ...options.scales,
                 x: {
                   grid: {
-                    display: false, // Hide x grid lines for bar charts for cleaner look
+                    display: false,
                   },
                   ticks: {
                     color: document.documentElement.classList.contains('dark')
@@ -347,22 +336,6 @@ const FinancialChart: React.FC<FinancialChartProps> = ({
             }} 
           />
         )}
-      </div>
-      
-      {/* Enhanced legend with more accessible colored boxes */}
-      <div className="mt-2 flex flex-wrap gap-3 justify-center text-xs text-gray-600 dark:text-dark-text-secondary">
-        {data.datasets.map((dataset, index) => (
-          <div key={index} className="flex items-center">
-            <span 
-              className="inline-block w-3 h-3 mr-1 rounded-sm" 
-              style={{ 
-                backgroundColor: typeof dataset.borderColor === 'string' ? dataset.borderColor : '',
-                border: dataset.borderDash ? '1px dashed #888' : 'none',
-              }}
-            />
-            <span>{dataset.label}</span>
-          </div>
-        ))}
       </div>
     </div>
   );

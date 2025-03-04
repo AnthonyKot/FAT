@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Search, BarChart4, PieChart, LineChart, Table, Info, TrendingUp, DollarSign, Percent, Loader2, FileText } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Search, BarChart4, PieChart, Info, TrendingUp, DollarSign, Percent, Loader2, FileText } from 'lucide-react';
 import CompanySelector from './components/CompanySelector';
 import CompetitorSelector from './components/CompetitorSelector';
 import Overview from './components/Overview';
@@ -11,7 +11,7 @@ import ComparisonReport from './components/ComparisonReport';
 import DarkModeToggle from './components/DarkModeToggle';
 import { Company, CompanyData } from './types';
 import { mockCompanies } from './data/mockData';
-import { getAvailableCompanies, getCompanyData } from './utils/dataFetcher';
+import { getCompanyData } from './utils/dataFetcher';
 import { FEATURES } from './utils/config';
 
 function App() {
@@ -21,14 +21,7 @@ function App() {
   const [companyData, setCompanyData] = useState<CompanyData | null>(null);
   const [competitorData, setCompetitorData] = useState<CompanyData | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [initialLoading, setInitialLoading] = useState<boolean>(true);
-
-  // Simulate initial data loading
-  useEffect(() => {
-    setTimeout(() => {
-      setInitialLoading(false);
-    }, 1500);
-  }, []);
+  const [initialLoading] = useState<boolean>(false);
 
   const handleCompanySelect = async (company: Company) => {
     setIsLoading(true);

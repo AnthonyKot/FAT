@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, TooltipProps } from 'recharts';
-import { StockPriceData, CompanyData } from '../types';
+import { CompanyData } from '../types';
 import { formatCurrency } from '../utils/formatters';
 import { format, subDays, subMonths, subWeeks, subYears, parseISO } from 'date-fns';
 
@@ -9,7 +9,7 @@ interface StockPriceChartProps {
   competitorData: CompanyData | null;
 }
 
-type TimeRange = '1D' | '1W' | '1M' | '6M' | '1Y' | '3Y';
+type TimeRange = '1W' | '1M' | '6M' | '1Y' | '3Y';
 
 const StockPriceChart: React.FC<StockPriceChartProps> = ({ companyData, competitorData }) => {
   const [timeRange, setTimeRange] = useState<TimeRange>('1M');
@@ -21,9 +21,6 @@ const StockPriceChart: React.FC<StockPriceChartProps> = ({ companyData, competit
     // Determine the cutoff date based on the selected time range
     let cutoffDate;
     switch (timeRange) {
-      case '1D':
-        cutoffDate = subDays(now, 1);
-        break;
       case '1W':
         cutoffDate = subWeeks(now, 1);
         break;
@@ -51,13 +48,13 @@ const StockPriceChart: React.FC<StockPriceChartProps> = ({ companyData, competit
     // Filter the data for the selected time range
     const companyPrices = companyData.stockPrices.filter(item => 
       parseISO(item.date) >= cutoffDate
-    );
+    ).reverse();;
 
     // If we have competitor data, merge it with company data
     if (competitorData) {
       const competitorPrices = competitorData.stockPrices.filter(item => 
         parseISO(item.date) >= cutoffDate
-      );
+      ).reverse();;
 
       // Create a merged dataset with both company and competitor prices
       const mergedData = companyPrices.map(companyItem => {
@@ -88,8 +85,6 @@ const StockPriceChart: React.FC<StockPriceChartProps> = ({ companyData, competit
   const formatXAxis = (tickItem: string) => {
     const date = parseISO(tickItem);
     switch (timeRange) {
-      case '1D':
-        return format(date, 'HH:mm');
       case '1W':
       case '1M':
         return format(date, 'MMM dd');
@@ -126,14 +121,6 @@ const StockPriceChart: React.FC<StockPriceChartProps> = ({ companyData, competit
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6">
         <h2 className="text-base sm:text-lg font-semibold text-gray-800 dark:text-dark-text-primary mb-3 sm:mb-0">Stock Price History</h2>
         <div className="flex flex-wrap gap-1 sm:gap-2 w-full sm:w-auto pb-1 sm:pb-0">
-          <button 
-            onClick={() => setTimeRange('1D')} 
-            className={`px-2 sm:px-3 py-1 text-xs rounded-md ${
-              timeRange === '1D' ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
-            }`}
-          >
-            1D
-          </button>
           <button 
             onClick={() => setTimeRange('1W')} 
             className={`px-2 sm:px-3 py-1 text-xs rounded-md ${
@@ -178,6 +165,20 @@ const StockPriceChart: React.FC<StockPriceChartProps> = ({ companyData, competit
       </div>
 
       <div className="h-52 sm:h-64 md:h-80">
+        <div className="mt-3 sm:mt-4 text-bases sm:text-base text-gray-500 dark:text-dark-text-secondary">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center sm:justify-end gap-2 sm:gap-0">
+            <div className="flex items-center">
+              <span className="inline-block w-2.5 h-2.5 sm:w-3 sm:h-3 bg-blue-500 dark:bg-blue-400 rounded-full mr-1 sm:mr-2"></span>
+              <span className="truncate max-w-[150px]">{companyData.company.name.trim().split(/[ .]+/)[0]}</span>: {formatCurrency(companyData.currentPrice)}
+            </div>
+            {competitorData && (
+              <div className="flex items-center sm:ml-10">
+                <span className="inline-block w-2.5 h-2.5 sm:w-3 sm:h-3 bg-red-500 dark:bg-red-400 rounded-full mr-1 sm:mr-2"></span>
+                <span className="truncate max-w-[150px]">{competitorData.company.name.trim().split(/[ .]+/)[0]}</span>: {formatCurrency(competitorData.currentPrice)}
+              </div>
+            )}
+        </div>
+      </div>
         <ResponsiveContainer width="100%" height="100%">
           <LineChart
             data={filteredData}
@@ -238,21 +239,6 @@ const StockPriceChart: React.FC<StockPriceChartProps> = ({ companyData, competit
             )}
           </LineChart>
         </ResponsiveContainer>
-      </div>
-
-      <div className="mt-3 sm:mt-4 text-xs sm:text-sm text-gray-500 dark:text-dark-text-secondary">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center sm:justify-end gap-2 sm:gap-0">
-          <div className="flex items-center">
-            <span className="inline-block w-2.5 h-2.5 sm:w-3 sm:h-3 bg-blue-500 dark:bg-blue-400 rounded-full mr-1 sm:mr-2"></span>
-            <span className="truncate max-w-[150px]">{companyData.company.name}</span>: {formatCurrency(companyData.currentPrice)}
-          </div>
-          {competitorData && (
-            <div className="flex items-center sm:ml-4">
-              <span className="inline-block w-2.5 h-2.5 sm:w-3 sm:h-3 bg-red-500 dark:bg-red-400 rounded-full mr-1 sm:mr-2"></span>
-              <span className="truncate max-w-[150px]">{competitorData.company.name}</span>: {formatCurrency(competitorData.currentPrice)}
-            </div>
-          )}
-        </div>
       </div>
     </div>
   );

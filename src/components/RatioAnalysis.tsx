@@ -318,135 +318,135 @@ const RatioAnalysis: React.FC<RatioAnalysisProps> = ({ companyData, competitorDa
         return [
           {
             name: 'P/E Ratio',
-            company: companyData.ratios.peRatio[companyData.ratios.peRatio.length - 1].value.toFixed(2),
-            competitor: competitorData ? competitorData.ratios.peRatio[competitorData.ratios.peRatio.length - 1].value.toFixed(2) : '-',
+            company: companyData.ratios.peRatio[0].value.toFixed(2),
+            competitor: competitorData ? competitorData.ratios.peRatio[0].value.toFixed(2) : '-',
             better: competitorData ? 
-              (companyData.ratios.peRatio[companyData.ratios.peRatio.length - 1].value < 
-               competitorData.ratios.peRatio[competitorData.ratios.peRatio.length - 1].value) : false
+              (companyData.ratios.peRatio[0].value < 
+               competitorData.ratios.peRatio[0].value) : false
           },
           {
             name: 'P/B Ratio',
-            company: companyData.ratios.pbRatio[companyData.ratios.pbRatio.length - 1].value.toFixed(2),
-            competitor: competitorData ? competitorData.ratios.pbRatio[competitorData.ratios.pbRatio.length - 1].value.toFixed(2) : '-',
+            company: companyData.ratios.pbRatio[0].value.toFixed(2),
+            competitor: competitorData ? competitorData.ratios.pbRatio[0].value.toFixed(2) : '-',
             better: competitorData ? 
-              (companyData.ratios.pbRatio[companyData.ratios.pbRatio.length - 1].value < 
-               competitorData.ratios.pbRatio[competitorData.ratios.pbRatio.length - 1].value) : false
+              (companyData.ratios.pbRatio[0].value < 
+               competitorData.ratios.pbRatio[0].value) : false
           },
           {
             name: 'P/S Ratio',
-            company: companyData.ratios.psRatio[companyData.ratios.psRatio.length - 1].value.toFixed(2),
-            competitor: competitorData ? competitorData.ratios.psRatio[competitorData.ratios.psRatio.length - 1].value.toFixed(2) : '-',
+            company: companyData.ratios.psRatio[0].value.toFixed(2),
+            competitor: competitorData ? competitorData.ratios.psRatio[0].value.toFixed(2) : '-',
             better: competitorData ? 
-              (companyData.ratios.psRatio[companyData.ratios.psRatio.length - 1].value < 
-               competitorData.ratios.psRatio[competitorData.ratios.psRatio.length - 1].value) : false
+              (companyData.ratios.psRatio[0].value < 
+               competitorData.ratios.psRatio[0].value) : false
           },
           {
             name: 'EV/EBITDA',
-            company: companyData.ratios.evToEbitda[companyData.ratios.evToEbitda.length - 1].value.toFixed(2),
-            competitor: competitorData ? competitorData.ratios.evToEbitda[competitorData.ratios.evToEbitda.length - 1].value.toFixed(2) : '-',
+            company: companyData.ratios.evToEbitda[0].value.toFixed(2),
+            competitor: competitorData ? competitorData.ratios.evToEbitda[0].value.toFixed(2) : '-',
             better: competitorData ? 
-              (companyData.ratios.evToEbitda[companyData.ratios.evToEbitda.length - 1].value < 
-               competitorData.ratios.evToEbitda[competitorData.ratios.evToEbitda.length - 1].value) : false
+              (companyData.ratios.evToEbitda[0].value < 
+               competitorData.ratios.evToEbitda[0].value) : false
           }
         ];
       case 'profitability':
         return [
           {
             name: 'ROE',
-            company: formatPercentage(companyData.ratios.returnOnEquity[companyData.ratios.returnOnEquity.length - 1].value),
-            competitor: competitorData ? formatPercentage(competitorData.ratios.returnOnEquity[competitorData.ratios.returnOnEquity.length - 1].value) : '-',
+            company: formatPercentage(companyData.ratios.returnOnEquity[0].value),
+            competitor: competitorData ? formatPercentage(competitorData.ratios.returnOnEquity[0].value) : '-',
             better: competitorData ? 
-              (companyData.ratios.returnOnEquity[companyData.ratios.returnOnEquity.length - 1].value > 
-               competitorData.ratios.returnOnEquity[competitorData.ratios.returnOnEquity.length - 1].value) : false
+              (companyData.ratios.returnOnEquity[0].value > 
+               competitorData.ratios.returnOnEquity[0].value) : false
           },
           {
             name: 'ROA',
-            company: formatPercentage(companyData.ratios.returnOnAssets[companyData.ratios.returnOnAssets.length - 1].value),
-            competitor: competitorData ? formatPercentage(competitorData.ratios.returnOnAssets[competitorData.ratios.returnOnAssets.length - 1].value) : '-',
+            company: formatPercentage(companyData.ratios.returnOnAssets[0].value),
+            competitor: competitorData ? formatPercentage(competitorData.ratios.returnOnAssets[0].value) : '-',
             better: competitorData ? 
-              (companyData.ratios.returnOnAssets[companyData.ratios.returnOnAssets.length - 1].value > 
-               competitorData.ratios.returnOnAssets[competitorData.ratios.returnOnAssets.length - 1].value) : false
+              (companyData.ratios.returnOnAssets[0].value > 
+               competitorData.ratios.returnOnAssets[0].value) : false
           },
           {
             name: 'Net Margin',
-            company: formatPercentage(companyData.ratios.netProfitMargin[companyData.ratios.netProfitMargin.length - 1].value),
-            competitor: competitorData ? formatPercentage(competitorData.ratios.netProfitMargin[competitorData.ratios.netProfitMargin.length - 1].value) : '-',
+            company: formatPercentage(companyData.ratios.netProfitMargin[0].value),
+            competitor: competitorData ? formatPercentage(competitorData.ratios.netProfitMargin[0].value) : '-',
             better: competitorData ? 
-              (companyData.ratios.netProfitMargin[companyData.ratios.netProfitMargin.length - 1].value > 
-               competitorData.ratios.netProfitMargin[competitorData.ratios.netProfitMargin.length - 1].value) : false
+              (companyData.ratios.netProfitMargin[0].value > 
+               competitorData.ratios.netProfitMargin[0].value) : false
           },
           {
             name: 'Gross Margin',
-            company: formatPercentage(companyData.ratios.grossProfitMargin[companyData.ratios.grossProfitMargin.length - 1].value),
-            competitor: competitorData ? formatPercentage(competitorData.ratios.grossProfitMargin[competitorData.ratios.grossProfitMargin.length - 1].value) : '-',
+            company: formatPercentage(companyData.ratios.grossProfitMargin[0].value),
+            competitor: competitorData ? formatPercentage(competitorData.ratios.grossProfitMargin[0].value) : '-',
             better: competitorData ? 
-              (companyData.ratios.grossProfitMargin[companyData.ratios.grossProfitMargin.length - 1].value > 
-               competitorData.ratios.grossProfitMargin[competitorData.ratios.grossProfitMargin.length - 1].value) : false
+              (companyData.ratios.grossProfitMargin[0].value > 
+               competitorData.ratios.grossProfitMargin[0].value) : false
           }
         ];
       case 'growth':
         return [
           {
             name: 'Revenue Growth',
-            company: formatPercentage(companyData.ratios.revenueGrowth[companyData.ratios.revenueGrowth.length - 1].value),
-            competitor: competitorData ? formatPercentage(competitorData.ratios.revenueGrowth[competitorData.ratios.revenueGrowth.length - 1].value) : '-',
+            company: formatPercentage(companyData.ratios.revenueGrowth[0].value),
+            competitor: competitorData ? formatPercentage(competitorData.ratios.revenueGrowth[0].value) : '-',
             better: competitorData ? 
-              (companyData.ratios.revenueGrowth[companyData.ratios.revenueGrowth.length - 1].value > 
-               competitorData.ratios.revenueGrowth[competitorData.ratios.revenueGrowth.length - 1].value) : false
+              (companyData.ratios.revenueGrowth[0].value > 
+               competitorData.ratios.revenueGrowth[0].value) : false
           },
           {
             name: 'EPS Growth',
-            company: formatPercentage(companyData.ratios.epsGrowth[companyData.ratios.epsGrowth.length - 1].value),
-            competitor: competitorData ? formatPercentage(competitorData.ratios.epsGrowth[competitorData.ratios.epsGrowth.length - 1].value) : '-',
+            company: formatPercentage(companyData.ratios.epsGrowth[0].value),
+            competitor: competitorData ? formatPercentage(competitorData.ratios.epsGrowth[0].value) : '-',
             better: competitorData ? 
-              (companyData.ratios.epsGrowth[companyData.ratios.epsGrowth.length - 1].value > 
-               competitorData.ratios.epsGrowth[competitorData.ratios.epsGrowth.length - 1].value) : false
+              (companyData.ratios.epsGrowth[0].value > 
+               competitorData.ratios.epsGrowth[0].value) : false
           }
         ];
       case 'risk':
         return [
           {
             name: 'Debt to Equity',
-            company: companyData.ratios.debtToEquity[companyData.ratios.debtToEquity.length - 1].value.toFixed(2),
-            competitor: competitorData ? competitorData.ratios.debtToEquity[competitorData.ratios.debtToEquity.length - 1].value.toFixed(2) : '-',
+            company: companyData.ratios.debtToEquity[0].value.toFixed(2),
+            competitor: competitorData ? competitorData.ratios.debtToEquity[0].value.toFixed(2) : '-',
             better: competitorData ? 
-              (companyData.ratios.debtToEquity[companyData.ratios.debtToEquity.length - 1].value < 
-               competitorData.ratios.debtToEquity[competitorData.ratios.debtToEquity.length - 1].value) : false
+              (companyData.ratios.debtToEquity[0].value < 
+               competitorData.ratios.debtToEquity[0].value) : false
           },
           {
             name: 'Current Ratio',
-            company: companyData.ratios.currentRatio[companyData.ratios.currentRatio.length - 1].value.toFixed(2),
-            competitor: competitorData ? competitorData.ratios.currentRatio[competitorData.ratios.currentRatio.length - 1].value.toFixed(2) : '-',
+            company: companyData.ratios.currentRatio[0].value.toFixed(2),
+            competitor: competitorData ? competitorData.ratios.currentRatio[0].value.toFixed(2) : '-',
             better: competitorData ? 
-              (companyData.ratios.currentRatio[companyData.ratios.currentRatio.length - 1].value > 
-               competitorData.ratios.currentRatio[competitorData.ratios.currentRatio.length - 1].value) : false
+              (companyData.ratios.currentRatio[0].value > 
+               competitorData.ratios.currentRatio[0].value) : false
           },
           {
             name: 'Quick Ratio',
-            company: companyData.ratios.quickRatio[companyData.ratios.quickRatio.length - 1].value.toFixed(2),
-            competitor: competitorData ? competitorData.ratios.quickRatio[competitorData.ratios.quickRatio.length - 1].value.toFixed(2) : '-',
+            company: companyData.ratios.quickRatio[0].value.toFixed(2),
+            competitor: competitorData ? competitorData.ratios.quickRatio[0].value.toFixed(2) : '-',
             better: competitorData ? 
-              (companyData.ratios.quickRatio[companyData.ratios.quickRatio.length - 1].value > 
-               competitorData.ratios.quickRatio[competitorData.ratios.quickRatio.length - 1].value) : false
+              (companyData.ratios.quickRatio[0].value > 
+               competitorData.ratios.quickRatio[0].value) : false
           }
         ];
       case 'efficiency':
         return [
           {
             name: 'Asset Turnover',
-            company: companyData.ratios.assetTurnover[companyData.ratios.assetTurnover.length - 1].value.toFixed(2),
-            competitor: competitorData ? competitorData.ratios.assetTurnover[competitorData.ratios.assetTurnover.length - 1].value.toFixed(2) : '-',
+            company: companyData.ratios.assetTurnover[0].value.toFixed(2),
+            competitor: competitorData ? competitorData.ratios.assetTurnover[0].value.toFixed(2) : '-',
             better: competitorData ? 
-              (companyData.ratios.assetTurnover[companyData.ratios.assetTurnover.length - 1].value > 
-               competitorData.ratios.assetTurnover[competitorData.ratios.assetTurnover.length - 1].value) : false
+              (companyData.ratios.assetTurnover[0].value > 
+               competitorData.ratios.assetTurnover[0].value) : false
           },
           {
             name: 'Inventory Turnover',
-            company: companyData.ratios.inventoryTurnover[companyData.ratios.inventoryTurnover.length - 1].value.toFixed(2),
-            competitor: competitorData ? competitorData.ratios.inventoryTurnover[competitorData.ratios.inventoryTurnover.length - 1].value.toFixed(2) : '-',
+            company: companyData.ratios.inventoryTurnover[0].value.toFixed(2),
+            competitor: competitorData ? competitorData.ratios.inventoryTurnover[0].value.toFixed(2) : '-',
             better: competitorData ? 
-              (companyData.ratios.inventoryTurnover[companyData.ratios.inventoryTurnover.length - 1].value > 
-               competitorData.ratios.inventoryTurnover[competitorData.ratios.inventoryTurnover.length - 1].value) : false
+              (companyData.ratios.inventoryTurnover[0].value > 
+               competitorData.ratios.inventoryTurnover[0].value) : false
           }
         ];
       default:
@@ -546,26 +546,6 @@ const RatioAnalysis: React.FC<RatioAnalysisProps> = ({ companyData, competitorDa
       <div id="ratio-analysis-section" className="bg-white dark:bg-dark-surface rounded-lg shadow dark:shadow-gray-800 p-6 mb-6">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-semibold text-gray-800 dark:text-dark-text-primary">{categoryExplanation.title} Trends</h2>
-          <div className="flex space-x-2">
-            <button 
-              onClick={() => setTimeframe('1Y')} 
-              className={`px-2 py-1 text-xs rounded ${timeframe === '1Y' ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300'}`}
-            >
-              1Y
-            </button>
-            <button 
-              onClick={() => setTimeframe('3Y')} 
-              className={`px-2 py-1 text-xs rounded ${timeframe === '3Y' ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300'}`}
-            >
-              3Y
-            </button>
-            <button 
-              onClick={() => setTimeframe('5Y')} 
-              className={`px-2 py-1 text-xs rounded ${timeframe === '5Y' ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300'}`}
-            >
-              5Y
-            </button>
-          </div>
         </div>
         <FinancialChart 
           chartData={chartData} 
@@ -669,62 +649,6 @@ const RatioAnalysis: React.FC<RatioAnalysisProps> = ({ companyData, competitorDa
               })}
             </tbody>
           </table>
-        </div>
-      </div>
-      
-      {/* Analysis Summary */}
-      <div className="bg-white dark:bg-dark-surface rounded-lg shadow dark:shadow-gray-800 p-6">
-        <h2 className="text-lg font-semibold text-gray-800 dark:text-dark-text-primary mb-4">Ratio Analysis Summary</h2>
-        <div className="prose max-w-none text-gray-600 dark:text-dark-text-secondary">
-          <p>
-            This ratio analysis helps in assessing {companyData.company.name}'s financial performance 
-            {competitorData ? ` compared to ${competitorData.company.name}` : ''} across multiple dimensions:
-          </p>
-          <ul className="mt-2 space-y-1">
-            <li>
-              <strong>Valuation:</strong> {companyData.company.name}'s P/E ratio of {companyData.ratios.peRatio[companyData.ratios.peRatio.length - 1].value.toFixed(2)} indicates 
-              {competitorData ? (companyData.ratios.peRatio[companyData.ratios.peRatio.length - 1].value < competitorData.ratios.peRatio[competitorData.ratios.peRatio.length - 1].value ? 
-                ' a more attractive valuation compared to its competitor.' : 
-                ' a potentially overvalued position relative to its competitor.') : 
-                ' how the market currently values its earnings.'}
-            </li>
-            <li>
-              <strong>Profitability:</strong> With a net profit margin of {formatPercentage(companyData.ratios.netProfitMargin[companyData.ratios.netProfitMargin.length - 1].value)}, 
-              the company {competitorData ? 
-                (companyData.ratios.netProfitMargin[companyData.ratios.netProfitMargin.length - 1].value > competitorData.ratios.netProfitMargin[competitorData.ratios.netProfitMargin.length - 1].value ? 
-                  'demonstrates stronger profitability than its competitor.' : 
-                  'shows lower profitability compared to its competitor.') : 
-                'demonstrates its efficiency in converting revenue into actual profit.'}
-            </li>
-            <li>
-              <strong>Growth:</strong> The company's revenue is growing at {formatPercentage(companyData.ratios.revenueGrowth[companyData.ratios.revenueGrowth.length - 1].value)} annually, 
-              which is {competitorData ? 
-                (companyData.ratios.revenueGrowth[companyData.ratios.revenueGrowth.length - 1].value > competitorData.ratios.revenueGrowth[competitorData.ratios.revenueGrowth.length - 1].value ? 
-                  'faster than its competitor.' : 
-                  'slower than its competitor.') : 
-                'an indicator of its market expansion capabilities.'}
-            </li>
-            <li>
-              <strong>Risk:</strong> With a debt-to-equity ratio of {companyData.ratios.debtToEquity[companyData.ratios.debtToEquity.length - 1].value.toFixed(2)}, 
-              the company {competitorData ? 
-                (companyData.ratios.debtToEquity[companyData.ratios.debtToEquity.length - 1].value < competitorData.ratios.debtToEquity[competitorData.ratios.debtToEquity.length - 1].value ? 
-                  'carries less debt relative to its equity compared to its competitor, indicating lower financial risk.' : 
-                  'carries more debt relative to its equity compared to its competitor, suggesting higher financial risk.') : 
-                'has this level of debt relative to its equity.'}
-            </li>
-          </ul>
-          <p className="mt-4">
-            {competitorData ? 
-              `Overall, when comparing ${companyData.company.name} to ${competitorData.company.name}, the analysis suggests that ` + 
-              (
-                (companyData.ratios.peRatio[companyData.ratios.peRatio.length - 1].value < competitorData.ratios.peRatio[competitorData.ratios.peRatio.length - 1].value) && 
-                (companyData.ratios.netProfitMargin[companyData.ratios.netProfitMargin.length - 1].value > competitorData.ratios.netProfitMargin[competitorData.ratios.netProfitMargin.length - 1].value) ? 
-                  `${companyData.company.name} may represent a more attractive investment opportunity with better valuation and higher profitability.` : 
-                  `investors should carefully weigh the trade-offs between valuation, growth, profitability, and risk when making investment decisions.`
-              ) :
-              `This ratio analysis provides a comprehensive view of ${companyData.company.name}'s financial health and performance. To gain further insights, consider comparing these metrics with industry averages and competitors.`
-            }
-          </p>
         </div>
       </div>
     </div>

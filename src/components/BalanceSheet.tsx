@@ -15,25 +15,25 @@ const BalanceSheet: React.FC<BalanceSheetProps> = ({ companyData, competitorData
   
   // Prepare chart data for assets comparison
   const assetsChartData = {
-    labels: companyData.balanceSheet.totalAssets.map(item => item.year.toString()),
+    labels: companyData.balanceSheet.totalAssets.map(item => item.year.toString()).reverse(),
     datasets: [
       {
         label: `${companyData.company.name} - Total Assets`,
-        data: companyData.balanceSheet.totalAssets.map(item => item.value),
+        data: companyData.balanceSheet.totalAssets.map(item => item.value).reverse(),
         backgroundColor: 'rgba(59, 130, 246, 0.5)',
         borderColor: 'rgb(59, 130, 246)',
         borderWidth: 2
       },
       {
         label: `${companyData.company.name} - Total Liabilities`,
-        data: companyData.balanceSheet.totalLiabilities.map(item => item.value),
+        data: companyData.balanceSheet.totalLiabilities.map(item => item.value).reverse(),
         backgroundColor: 'rgba(239, 68, 68, 0.5)',
         borderColor: 'rgb(239, 68, 68)',
         borderWidth: 2
       },
       {
         label: `${companyData.company.name} - Total Equity`,
-        data: companyData.balanceSheet.totalEquity.map(item => item.value),
+        data: companyData.balanceSheet.totalEquity.map(item => item.value).reverse(),
         backgroundColor: 'rgba(16, 185, 129, 0.5)',
         borderColor: 'rgb(16, 185, 129)',
         borderWidth: 2
@@ -41,7 +41,7 @@ const BalanceSheet: React.FC<BalanceSheetProps> = ({ companyData, competitorData
       ...(competitorData ? [
         {
           label: `${competitorData.company.name} - Total Assets`,
-          data: competitorData.balanceSheet.totalAssets.map(item => item.value),
+          data: competitorData.balanceSheet.totalAssets.map(item => item.value).reverse(),
           backgroundColor: 'rgba(245, 158, 11, 0.5)',
           borderColor: 'rgb(245, 158, 11)',
           borderWidth: 2
@@ -97,29 +97,6 @@ const BalanceSheet: React.FC<BalanceSheetProps> = ({ companyData, competitorData
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         <div className="bg-white dark:bg-dark-surface rounded-lg shadow dark:shadow-gray-800 p-6">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-semibold text-gray-800 dark:text-dark-text-primary">Assets, Liabilities & Equity</h2>
-            <div className="flex space-x-2">
-              <button 
-                onClick={() => setTimeframe('1Y')} 
-                className={`px-2 py-1 text-xs rounded ${timeframe === '1Y' ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'}`}
-              >
-                1Y
-              </button>
-              <button 
-                onClick={() => setTimeframe('3Y')} 
-                className={`px-2 py-1 text-xs rounded ${timeframe === '3Y' ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'}`}
-              >
-                3Y
-              </button>
-              <button 
-                onClick={() => setTimeframe('5Y')} 
-                className={`px-2 py-1 text-xs rounded ${timeframe === '5Y' ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'}`}
-              >
-                5Y
-              </button>
-            </div>
-          </div>
           <FinancialChart 
             chartData={assetsChartData} 
             chartType="line"
@@ -134,29 +111,6 @@ const BalanceSheet: React.FC<BalanceSheetProps> = ({ companyData, competitorData
         </div>
         
         <div className="bg-white dark:bg-dark-surface rounded-lg shadow dark:shadow-gray-800 p-6">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-semibold text-gray-800 dark:text-dark-text-primary">Asset Composition</h2>
-            <div className="flex space-x-2">
-              <button 
-                onClick={() => setTimeframe('1Y')} 
-                className={`px-2 py-1 text-xs rounded ${timeframe === '1Y' ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'}`}
-              >
-                1Y
-              </button>
-              <button 
-                onClick={() => setTimeframe('3Y')} 
-                className={`px-2 py-1 text-xs rounded ${timeframe === '3Y' ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'}`}
-              >
-                3Y
-              </button>
-              <button 
-                onClick={() => setTimeframe('5Y')} 
-                className={`px-2 py-1 text-xs rounded ${timeframe === '5Y' ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'}`}
-              >
-                5Y
-              </button>
-            </div>
-          </div>
           <FinancialChart 
             chartData={assetCompositionChartData} 
             chartType="bar"
@@ -174,7 +128,7 @@ const BalanceSheet: React.FC<BalanceSheetProps> = ({ companyData, competitorData
       {/* Balance Sheet Table */}
       <div className="bg-white dark:bg-dark-surface rounded-lg shadow dark:shadow-gray-800 overflow-hidden mb-8">
         <div className="px-6 py-4 border-b border-gray-200 dark:border-dark-border">
-          <h2 className="text-lg font-semibold text-gray-800 dark:text-dark-text-primary">Balance Sheet Details</h2>
+          <h2 className="text-lg font-semibold text-gray-800 dark:text-dark-text-primary">Balance Sheet Details {companyData.company.symbol}</h2>
         </div>
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200 dark:divide-dark-border">

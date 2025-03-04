@@ -1,18 +1,8 @@
 // Integration between the App and the data sources (API or mock)
-import { CompanyData, Company } from '../types';
-import { mockCompanyData, mockCompanies } from '../data/mockData';
+import { CompanyData } from '../types';
+import { mockCompanyData } from '../data/mockData';
 import { fetchCompanyData } from './dataAdapter';
-import { FEATURES, AVAILABLE_TICKERS } from './config';
-
-/**
- * Get a list of available companies
- * In a real implementation, this would fetch from an API
- */
-export async function getAvailableCompanies(): Promise<Company[]> {
-  // For simplicity, we'll use mock companies regardless of API setting
-  // In a real app, this would fetch from an API endpoint
-  return mockCompanies;
-}
+import { FEATURES } from './config';
 
 /**
  * Fetch company data either from the API or mock data

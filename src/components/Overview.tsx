@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { ArrowUp, ArrowDown, Minus, DollarSign, TrendingUp, BarChart4, PieChart } from 'lucide-react';
 import { CompanyData, FinancialData } from '../types';
-import { formatCurrency, formatPercentage, formatLargeNumber } from '../utils/formatters';
+import { formatPercentage, formatLargeNumber } from '../utils/formatters';
 import CompanyMetrics from './CompanyMetrics';
-import FinancialChart from './FinancialChart';
 import StockPriceChart from './StockPriceChart';
 
 interface OverviewProps {
@@ -12,8 +11,6 @@ interface OverviewProps {
 }
 
 const Overview: React.FC<OverviewProps> = ({ companyData, competitorData }) => {
-  const [timeframe, setTimeframe] = useState<'1Y' | '3Y' | '5Y'>('1Y');
-  
   if (!companyData) return null;
   
   const getPerformanceIndicator = (value: number) => {
@@ -41,204 +38,53 @@ const Overview: React.FC<OverviewProps> = ({ companyData, competitorData }) => {
   const revenueGrowth = calculateGrowth(companyData.incomeStatement.revenue);
   const netIncomeGrowth = calculateGrowth(companyData.incomeStatement.netIncome);
   const epsGrowth = calculateGrowth(companyData.incomeStatement.eps);
-  
-  // Prepare chart data for revenue comparison - sorted chronologically (past to present)
-  const prepareChronologicalData = (data: Array<{year: number, value: number}> | undefined) => {
-    if (!data || data.length === 0) return [];
-    // Sort by year ascending (past to present)
-    return [...data].sort((a, b) => a.year - b.year);
-  };
-  
-  // Sort company's revenue data chronologically
-  const sortedCompanyRevenue = prepareChronologicalData(companyData.incomeStatement.revenue);
-  
-  // Sort competitor's revenue data if available
-  const sortedCompetitorRevenue = competitorData ? 
-    prepareChronologicalData(competitorData.incomeStatement.revenue) : [];
-    
-  const revenueChartData = {
-    labels: sortedCompanyRevenue.map(item => item.year.toString()),
-    datasets: [
-      {
-        label: companyData.company.name,
-        data: sortedCompanyRevenue.map(item => item.value),
-        backgroundColor: 'rgba(59, 130, 246, 0.5)',
-        borderColor: 'rgb(59, 130, 246)',
-        borderWidth: 2
-      },
-      ...(competitorData ? [{
-        label: competitorData.company.name,
-        data: sortedCompetitorRevenue.map(item => item.value),
-        backgroundColor: 'rgba(239, 68, 68, 0.5)',
-        borderColor: 'rgb(239, 68, 68)',
-        borderWidth: 2
-      }] : [])
-    ]
-  };
-  
-  // Prepare chart data for profit margins
-  // Sort margins data chronologically
-  const sortedNetMargin = prepareChronologicalData(companyData.ratios?.netProfitMargin);
-  const sortedGrossMargin = prepareChronologicalData(companyData.ratios?.grossProfitMargin);
-  
-  // Sort competitor margin data if available
-  const sortedCompetitorNetMargin = competitorData ? 
-    prepareChronologicalData(competitorData.ratios?.netProfitMargin) : [];
-  const sortedCompetitorGrossMargin = competitorData ? 
-    prepareChronologicalData(competitorData.ratios?.grossProfitMargin) : [];
-  
-  // Use net margin years for labels, or gross margin if net margin not available
-  const marginYears = sortedNetMargin.length > 0 ? 
-    sortedNetMargin.map(item => item.year.toString()) : 
-    sortedGrossMargin.map(item => item.year.toString());
-    
-  const profitMarginChartData = {
-    labels: marginYears,
-    datasets: [
-      {
-        label: `${companyData.company.name} - Net Margin`,
-        data: sortedNetMargin.map(item => item.value * 100),
-        backgroundColor: 'rgba(59, 130, 246, 0.5)',
-        borderColor: 'rgb(59, 130, 246)',
-        borderWidth: 2
-      },
-      {
-        label: `${companyData.company.name} - Gross Margin`,
-        data: sortedGrossMargin.map(item => item.value * 100),
-        backgroundColor: 'rgba(16, 185, 129, 0.5)',
-        borderColor: 'rgb(16, 185, 129)',
-        borderWidth: 2
-      },
-      ...(sortedCompetitorNetMargin.length > 0 ? [
-        {
-          label: `${competitorData?.company.name} - Net Margin`,
-          data: sortedCompetitorNetMargin.map(item => item.value * 100),
-          backgroundColor: 'rgba(239, 68, 68, 0.5)',
-          borderColor: 'rgb(239, 68, 68)',
-          borderWidth: 2
-        }
-      ] : []),
-      ...(sortedCompetitorGrossMargin.length > 0 ? [
-        {
-          label: `${competitorData?.company.name} - Gross Margin`,
-          data: sortedCompetitorGrossMargin.map(item => item.value * 100),
-          backgroundColor: 'rgba(245, 158, 11, 0.5)',
-          borderColor: 'rgb(245, 158, 11)',
-          borderWidth: 2
-        }
-      ] : [])
-    ]
-  };
-  
+
   // Prepare chart data for key ratios
   const getLatestRatioValue = (ratioArray?: FinancialData[]) => {
     if (!ratioArray || ratioArray.length === 0) return 0;
-    
+
     // Sort by year and get the latest
     const sortedData = [...ratioArray].sort((a, b) => b.year - a.year);
     return sortedData[0].value;
   };
-  
-  // Prepare ratio data for each year in chronological order
-  const prepareRatioChartData = () => {
-    // Combine all ratio types to find all unique years
-    const allPeRatios = prepareChronologicalData(companyData.ratios?.peRatio);
-    const allPbRatios = prepareChronologicalData(companyData.ratios?.pbRatio);
-    const allPsRatios = prepareChronologicalData(companyData.ratios?.psRatio);
-    const allEvToEbitda = prepareChronologicalData(companyData.ratios?.evToEbitda);
-    
-    // For competitor data if available
-    const compPeRatios = competitorData ? prepareChronologicalData(competitorData.ratios?.peRatio) : [];
-    const compPbRatios = competitorData ? prepareChronologicalData(competitorData.ratios?.pbRatio) : [];
-    const compPsRatios = competitorData ? prepareChronologicalData(competitorData.ratios?.psRatio) : [];
-    const compEvToEbitda = competitorData ? prepareChronologicalData(competitorData.ratios?.evToEbitda) : [];
-    
-    // For a specific ratio type like P/E, use values by year
-    return {
-      'P/E Ratio': {
-        company: allPeRatios.map(r => r.value),
-        competitor: compPeRatios.map(r => r.value),
-        years: allPeRatios.map(r => r.year.toString())
-      },
-      'P/B Ratio': {
-        company: allPbRatios.map(r => r.value),
-        competitor: compPbRatios.map(r => r.value),
-        years: allPbRatios.map(r => r.year.toString())
-      },
-      'P/S Ratio': {
-        company: allPsRatios.map(r => r.value),
-        competitor: compPsRatios.map(r => r.value),
-        years: allPsRatios.map(r => r.year.toString())
-      },
-      'EV/EBITDA': {
-        company: allEvToEbitda.map(r => r.value),
-        competitor: compEvToEbitda.map(r => r.value),
-        years: allEvToEbitda.map(r => r.year.toString())
-      }
-    };
-  };
-  
-  // For the key ratios bar chart, we'll use the traditional approach with latest values
-  const keyRatiosChartData = {
-    labels: ['P/E Ratio', 'P/B Ratio', 'P/S Ratio', 'EV/EBITDA'],
-    datasets: [
-      {
-        label: companyData.company.name,
-        data: [
-          getLatestRatioValue(companyData.ratios?.peRatio),
-          getLatestRatioValue(companyData.ratios?.pbRatio),
-          getLatestRatioValue(companyData.ratios?.psRatio),
-          getLatestRatioValue(companyData.ratios?.evToEbitda)
-        ],
-        backgroundColor: 'rgba(59, 130, 246, 0.5)',
-        borderColor: 'rgb(59, 130, 246)',
-        borderWidth: 2
-      },
-      ...(competitorData ? [{
-        label: competitorData.company.name,
-        data: [
-          getLatestRatioValue(competitorData.ratios?.peRatio),
-          getLatestRatioValue(competitorData.ratios?.pbRatio),
-          getLatestRatioValue(competitorData.ratios?.psRatio),
-          getLatestRatioValue(competitorData.ratios?.evToEbitda)
-        ],
-        backgroundColor: 'rgba(239, 68, 68, 0.5)',
-        borderColor: 'rgb(239, 68, 68)',
-        borderWidth: 2
-      }] : [])
-    ]
-  };
 
   return (
     <div>
-      <div className="mb-4 sm:mb-6">
-        <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-dark-text-primary mb-1 sm:mb-2 truncate">{companyData.company.name} ({companyData.company.symbol})</h1>
-        <p className="text-sm sm:text-base text-gray-600 dark:text-dark-text-secondary">{companyData.company.industry}</p>
-      </div>
-      
+      {/* Stock Price Chart */}
+      <StockPriceChart
+        companyData={companyData}
+        competitorData={competitorData}
+      />
+
       {/* Company Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
+        <div className="p-4">
+          <div>
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-dark-text-primary mb-1 sm:mb-2 truncate">{companyData.company.name} ({companyData.company.symbol})</h1>
+            <p className="text-sm sm:text-base text-gray-600 dark:text-dark-text-secondary">{companyData.company.industry}</p>
+          </div>
         <CompanyMetrics 
           companyData={companyData} 
           title="Company Metrics"
         />
+        </div>
         {competitorData && (
+          <div className="p-4">
+            <div>
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-dark-text-primary mb-1 sm:mb-2 truncate">{competitorData.company.name} ({competitorData.company.symbol})</h1>
+              <p className="text-sm sm:text-base text-gray-600 dark:text-dark-text-secondary">{competitorData.company.industry}</p>
+            </div>
           <CompanyMetrics 
             companyData={competitorData} 
             title="Competitor Metrics"
           />
+          </div>
         )}
       </div>
-      
-      {/* Stock Price Chart */}
-      <StockPriceChart 
-        companyData={companyData}
-        competitorData={competitorData}
-      />
-      
+
       {/* Key Performance Indicators */}
       <div className="bg-white dark:bg-dark-surface rounded-lg shadow dark:shadow-gray-800 p-4 sm:p-6 mb-6 sm:mb-8">
-        <h2 className="text-base sm:text-lg font-semibold text-gray-800 dark:text-dark-text-primary mb-3 sm:mb-4">Key Performance Indicators</h2>
+        <h2 className="text-base sm:text-lg font-semibold text-gray-800 dark:text-dark-text-primary mb-3 sm:mb-4">Key Performance Indicators ({companyData.company.symbol})</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-6">
           <div className="bg-blue-50 dark:bg-blue-900/20 p-3 sm:p-4 rounded-lg">
             <div className="flex items-center mb-1 sm:mb-2">
@@ -277,206 +123,10 @@ const Overview: React.FC<OverviewProps> = ({ companyData, competitorData }) => {
           </div>
         </div>
       </div>
-      
-      {/* Financial Charts */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
-        <div className="bg-white dark:bg-dark-surface rounded-lg shadow dark:shadow-gray-800 p-4 sm:p-6">
-          <div className="flex flex-col xs:flex-row justify-between items-start xs:items-center mb-3 sm:mb-4 gap-2 xs:gap-0">
-            <h2 className="text-base sm:text-lg font-semibold text-gray-800 dark:text-dark-text-primary">Revenue Comparison</h2>
-            <div className="flex gap-1 sm:gap-2">
-              <button 
-                onClick={() => setTimeframe('1Y')} 
-                className={`px-2 py-1 text-xs rounded ${timeframe === '1Y' ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300'}`}
-              >
-                1Y
-              </button>
-              <button 
-                onClick={() => setTimeframe('3Y')} 
-                className={`px-2 py-1 text-xs rounded ${timeframe === '3Y' ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300'}`}
-              >
-                3Y
-              </button>
-              <button 
-                onClick={() => setTimeframe('5Y')} 
-                className={`px-2 py-1 text-xs rounded ${timeframe === '5Y' ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300'}`}
-              >
-                5Y
-              </button>
-            </div>
-          </div>
-          <FinancialChart 
-            chartData={revenueChartData} 
-            chartType="bar"
-            yAxisLabel="Revenue ($)"
-            tooltipPrefix="$"
-            tooltipCallback={(value: number) => formatLargeNumber(value)}
-          />
-        </div>
-        
-        <div className="bg-white dark:bg-dark-surface rounded-lg shadow dark:shadow-gray-800 p-4 sm:p-6">
-          <div className="flex flex-col xs:flex-row justify-between items-start xs:items-center mb-3 sm:mb-4 gap-2 xs:gap-0">
-            <h2 className="text-base sm:text-lg font-semibold text-gray-800 dark:text-dark-text-primary">Profit Margins</h2>
-            <div className="flex gap-1 sm:gap-2">
-              <button 
-                onClick={() => setTimeframe('1Y')} 
-                className={`px-2 py-1 text-xs rounded ${timeframe === '1Y' ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300'}`}
-              >
-                1Y
-              </button>
-              <button 
-                onClick={() => setTimeframe('3Y')} 
-                className={`px-2 py-1 text-xs rounded ${timeframe === '3Y' ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300'}`}
-              >
-                3Y
-              </button>
-              <button 
-                onClick={() => setTimeframe('5Y')} 
-                className={`px-2 py-1 text-xs rounded ${timeframe === '5Y' ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300'}`}
-              >
-                5Y
-              </button>
-            </div>
-          </div>
-          <FinancialChart 
-            chartData={profitMarginChartData} 
-            chartType="line"
-            yAxisLabel="Percentage (%)"
-            tooltipSuffix="%"
-          />
-        </div>
-      </div>
-      
-      {/* Valuation Ratios */}
-      <div className="bg-white dark:bg-dark-surface rounded-lg shadow dark:shadow-gray-800 p-4 sm:p-6 mb-6 sm:mb-8">
-        <h2 className="text-base sm:text-lg font-semibold text-gray-800 dark:text-dark-text-primary mb-3 sm:mb-4">Valuation Ratios</h2>
-        
-        {/* Grid of individual ratio charts */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-          {/* P/E Ratio Chart */}
-          <div className="bg-gray-50 dark:bg-gray-900/20 rounded-lg p-3 sm:p-4">
-            <h3 className="text-sm font-medium text-gray-700 dark:text-dark-text-primary mb-2">P/E Ratio</h3>
-            <FinancialChart 
-              chartData={{
-                labels: prepareChronologicalData(companyData.ratios?.peRatio).map(item => item.year.toString()),
-                datasets: [
-                  {
-                    label: companyData.company.name,
-                    data: prepareChronologicalData(companyData.ratios?.peRatio).map(item => item.value),
-                    backgroundColor: 'rgba(59, 130, 246, 0.5)',
-                    borderColor: 'rgb(59, 130, 246)',
-                    borderWidth: 2
-                  },
-                  ...(competitorData && competitorData.ratios?.peRatio ? [{
-                    label: competitorData.company.name,
-                    data: prepareChronologicalData(competitorData.ratios?.peRatio).map(item => item.value),
-                    backgroundColor: 'rgba(239, 68, 68, 0.5)',
-                    borderColor: 'rgb(239, 68, 68)',
-                    borderWidth: 2
-                  }] : [])
-                ]
-              }} 
-              chartType="bar"
-              yAxisLabel="Ratio Value"
-              description="Price to Earnings Ratio: Lower means potentially undervalued"
-              termKey="peRatio"
-            />
-          </div>
-          
-          {/* P/B Ratio Chart */}
-          <div className="bg-gray-50 dark:bg-gray-900/20 rounded-lg p-3 sm:p-4">
-            <h3 className="text-sm font-medium text-gray-700 dark:text-dark-text-primary mb-2">P/B Ratio</h3>
-            <FinancialChart 
-              chartData={{
-                labels: prepareChronologicalData(companyData.ratios?.pbRatio).map(item => item.year.toString()),
-                datasets: [
-                  {
-                    label: companyData.company.name,
-                    data: prepareChronologicalData(companyData.ratios?.pbRatio).map(item => item.value),
-                    backgroundColor: 'rgba(59, 130, 246, 0.5)',
-                    borderColor: 'rgb(59, 130, 246)',
-                    borderWidth: 2
-                  },
-                  ...(competitorData && competitorData.ratios?.pbRatio ? [{
-                    label: competitorData.company.name,
-                    data: prepareChronologicalData(competitorData.ratios?.pbRatio).map(item => item.value),
-                    backgroundColor: 'rgba(239, 68, 68, 0.5)',
-                    borderColor: 'rgb(239, 68, 68)',
-                    borderWidth: 2
-                  }] : [])
-                ]
-              }} 
-              chartType="bar"
-              yAxisLabel="Ratio Value"
-              description="Price to Book Ratio: Compares market value to book value"
-              termKey="pbRatio"
-            />
-          </div>
-          
-          {/* P/S Ratio Chart */}
-          <div className="bg-gray-50 dark:bg-gray-900/20 rounded-lg p-3 sm:p-4">
-            <h3 className="text-sm font-medium text-gray-700 dark:text-dark-text-primary mb-2">P/S Ratio</h3>
-            <FinancialChart 
-              chartData={{
-                labels: prepareChronologicalData(companyData.ratios?.psRatio).map(item => item.year.toString()),
-                datasets: [
-                  {
-                    label: companyData.company.name,
-                    data: prepareChronologicalData(companyData.ratios?.psRatio).map(item => item.value),
-                    backgroundColor: 'rgba(59, 130, 246, 0.5)',
-                    borderColor: 'rgb(59, 130, 246)',
-                    borderWidth: 2
-                  },
-                  ...(competitorData && competitorData.ratios?.psRatio ? [{
-                    label: competitorData.company.name,
-                    data: prepareChronologicalData(competitorData.ratios?.psRatio).map(item => item.value),
-                    backgroundColor: 'rgba(239, 68, 68, 0.5)',
-                    borderColor: 'rgb(239, 68, 68)',
-                    borderWidth: 2
-                  }] : [])
-                ]
-              }} 
-              chartType="bar"
-              yAxisLabel="Ratio Value"
-              description="Price to Sales Ratio: Useful for companies without earnings"
-              termKey="psRatio"
-            />
-          </div>
-          
-          {/* EV/EBITDA Chart */}
-          <div className="bg-gray-50 dark:bg-gray-900/20 rounded-lg p-3 sm:p-4">
-            <h3 className="text-sm font-medium text-gray-700 dark:text-dark-text-primary mb-2">EV/EBITDA</h3>
-            <FinancialChart 
-              chartData={{
-                labels: prepareChronologicalData(companyData.ratios?.evToEbitda).map(item => item.year.toString()),
-                datasets: [
-                  {
-                    label: companyData.company.name,
-                    data: prepareChronologicalData(companyData.ratios?.evToEbitda).map(item => item.value),
-                    backgroundColor: 'rgba(59, 130, 246, 0.5)',
-                    borderColor: 'rgb(59, 130, 246)',
-                    borderWidth: 2
-                  },
-                  ...(competitorData && competitorData.ratios?.evToEbitda ? [{
-                    label: competitorData.company.name,
-                    data: prepareChronologicalData(competitorData.ratios?.evToEbitda).map(item => item.value),
-                    backgroundColor: 'rgba(239, 68, 68, 0.5)',
-                    borderColor: 'rgb(239, 68, 68)',
-                    borderWidth: 2
-                  }] : [])
-                ]
-              }} 
-              chartType="bar"
-              yAxisLabel="Ratio Value"
-              description="Enterprise Value to EBITDA: More capital structure neutral"
-              termKey="evToEbitda"
-            />
-          </div>
-        </div>
-      </div>
-      
+
       {/* Analysis Summary */}
       <div className="bg-white dark:bg-dark-surface rounded-lg shadow dark:shadow-gray-800 p-4 sm:p-6">
-        <h2 className="text-base sm:text-lg font-semibold text-gray-800 dark:text-dark-text-primary mb-3 sm:mb-4">Analysis Summary</h2>
+        <h2 className="text-base sm:text-lg font-semibold text-gray-800 dark:text-dark-text-primary mb-3 sm:mb-4">Analysis Summary ({companyData.company.symbol})</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
           <div className="border border-gray-200 dark:border-dark-border rounded-lg p-3 sm:p-4">
             <div className="flex items-center mb-2 sm:mb-3">
@@ -502,7 +152,7 @@ const Overview: React.FC<OverviewProps> = ({ companyData, competitorData }) => {
               </li>
             </ul>
           </div>
-          
+
           <div className="border border-gray-200 dark:border-dark-border rounded-lg p-3 sm:p-4">
             <div className="flex items-center mb-2 sm:mb-3">
               <TrendingUp className="h-4 sm:h-5 w-4 sm:w-5 text-green-600 dark:text-green-400 mr-1 sm:mr-2" />
@@ -527,7 +177,7 @@ const Overview: React.FC<OverviewProps> = ({ companyData, competitorData }) => {
               </li>
             </ul>
           </div>
-          
+
           <div className="border border-gray-200 dark:border-dark-border rounded-lg p-3 sm:p-4">
             <div className="flex items-center mb-2 sm:mb-3">
               <PieChart className="h-4 sm:h-5 w-4 sm:w-5 text-purple-600 dark:text-purple-400 mr-1 sm:mr-2" />
@@ -552,6 +202,142 @@ const Overview: React.FC<OverviewProps> = ({ companyData, competitorData }) => {
               </li>
             </ul>
           </div>
+        </div>
+      </div>
+
+      {/* Analysis Summary */}
+      <div className="bg-white dark:bg-dark-surface rounded-lg shadow dark:shadow-gray-800 p-6">
+        <h2 className="text-lg font-semibold text-gray-800 dark:text-dark-text-primary mb-4">Ratio Analysis Summary</h2>
+        <div className="prose max-w-none text-gray-600 dark:text-dark-text-secondary">
+          <p>
+            This ratio analysis helps in assessing {companyData.company.name}'s financial performance
+            {competitorData ? ` compared to ${competitorData.company.name}` : ''} across multiple dimensions:
+          </p>
+          <ul className="mt-2 space-y-1">
+            <li>
+              <strong>Valuation:</strong> {companyData.company.name}'s P/E ratio of {companyData.ratios.peRatio[0].value.toFixed(2)} indicates
+              {competitorData ? (companyData.ratios.peRatio[0].value < competitorData.ratios.peRatio[0].value ?
+                ' a more attractive valuation compared to its competitor.' :
+                ' a potentially overvalued position relative to its competitor.') :
+                ' how the market currently values its earnings.'}
+            </li>
+            <li>
+              <strong>Profitability:</strong> With a net profit margin of {formatPercentage(companyData.ratios.netProfitMargin[0].value)},
+              the company {competitorData ?
+                (companyData.ratios.netProfitMargin[0].value > competitorData.ratios.netProfitMargin[0].value ?
+                  'demonstrates stronger profitability than its competitor.' :
+                  'shows lower profitability compared to its competitor.') :
+                'demonstrates its efficiency in converting revenue into actual profit.'}
+            </li>
+            <li>
+              <strong>Growth:</strong> The company's revenue is growing at {formatPercentage(companyData.ratios.revenueGrowth[0].value)} annually,
+              which is {competitorData ?
+                (companyData.ratios.revenueGrowth[0].value > competitorData.ratios.revenueGrowth[0].value ?
+                  'faster than its competitor.' :
+                  'slower than its competitor.') :
+                'an indicator of its market expansion capabilities.'}
+            </li>
+            <li>
+              <strong>Risk:</strong> With a debt-to-equity ratio of {companyData.ratios.debtToEquity[0].value.toFixed(2)},
+              the company {competitorData ?
+                (companyData.ratios.debtToEquity[0].value < competitorData.ratios.debtToEquity[0].value ?
+                  'carries less debt relative to its equity compared to its competitor, indicating lower financial risk.' :
+                  'carries more debt relative to its equity compared to its competitor, suggesting higher financial risk.') :
+                'has this level of debt relative to its equity.'}
+            </li>
+          </ul>
+          <p className="mt-4">
+            {competitorData ?
+              `Overall, when comparing ${companyData.company.name} to ${competitorData.company.name}, the analysis suggests that ` +
+              (
+                (companyData.ratios.peRatio[0].value < competitorData.ratios.peRatio[0].value) &&
+                  (companyData.ratios.netProfitMargin[0].value > competitorData.ratios.netProfitMargin[0].value) ?
+                  `${companyData.company.name} may represent a more attractive investment opportunity with better valuation and higher profitability.` :
+                  `investors should carefully weigh the trade-offs between valuation, growth, profitability, and risk when making investment decisions.`
+              ) :
+              `This ratio analysis provides a comprehensive view of ${companyData.company.name}'s financial health and performance. To gain further insights, consider comparing these metrics with industry averages and competitors.`
+            }
+          </p>
+        </div>
+      </div>
+
+      {/* Cash Flow Key Highlights */}
+      <div className="bg-white dark:bg-dark-surface rounded-lg shadow dark:shadow-gray-800 p-6 mb-8">
+        <h2 className="text-lg font-semibold text-gray-800 dark:text-dark-text-primary mb-4">Key Financial Indicators ({companyData.company.symbol})</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+          {/* Operating Cash Flow YoY Change */}
+          {(() => {
+            const latestOCF = companyData.cashFlow.operatingCashFlow[0];
+            const prevOCF = companyData.cashFlow.operatingCashFlow[1];
+            const changePercent = ((latestOCF.value - prevOCF.value) / Math.abs(prevOCF.value) * 100);
+            const isPositive = changePercent > 0;
+
+            return (
+              <div className={`rounded-lg p-4 ${isPositive ? 'bg-green-50 dark:bg-green-900/20' : 'bg-red-50 dark:bg-red-900/20'} flex flex-col`}>
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-medium text-gray-700 dark:text-dark-text-secondary">Operating Cash Flow</h3>
+                  <span className={`text-xs px-2 py-1 rounded-full font-bold ${isPositive ? 'bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-200' : 'bg-red-100 dark:bg-red-800 text-red-800 dark:text-red-200'}`}>
+                    {isPositive ? '↑' : '↓'} {Math.abs(changePercent).toFixed(1)}%
+                  </span>
+                </div>
+                <p className="mt-2 text-2xl font-bold text-gray-900 dark:text-dark-text-primary">{formatLargeNumber(latestOCF.value)}</p>
+                <p className="mt-1 text-xs text-gray-500 dark:text-dark-text-secondary">
+                  vs {formatLargeNumber(prevOCF.value)} ({prevOCF.year})
+                </p>
+              </div>
+            );
+          })()}
+
+          {/* Free Cash Flow YoY Change */}
+          {(() => {
+            const latestFCF = companyData.cashFlow.freeCashFlow[0];
+            const prevFCF = companyData.cashFlow.freeCashFlow[1];
+            const changePercent = ((latestFCF.value - prevFCF.value) / Math.abs(prevFCF.value) * 100);
+            const isPositive = changePercent > 0;
+
+            return (
+              <div className={`rounded-lg p-4 ${isPositive ? 'bg-green-50 dark:bg-green-900/20' : 'bg-red-50 dark:bg-red-900/20'} flex flex-col`}>
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-medium text-gray-700 dark:text-dark-text-secondary">Free Cash Flow</h3>
+                  <span className={`text-xs px-2 py-1 rounded-full font-bold ${isPositive ? 'bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-200' : 'bg-red-100 dark:bg-red-800 text-red-800 dark:text-red-200'}`}>
+                    {isPositive ? '↑' : '↓'} {Math.abs(changePercent).toFixed(1)}%
+                  </span>
+                </div>
+                <p className="mt-2 text-2xl font-bold text-gray-900 dark:text-dark-text-primary">{formatLargeNumber(latestFCF.value)}</p>
+                <p className="mt-1 text-xs text-gray-500 dark:text-dark-text-secondary">
+                  vs {formatLargeNumber(prevFCF.value)} ({prevFCF.year})
+                </p>
+              </div>
+            );
+          })()}
+
+          {/* Cash Flow Margin */}
+          {(() => {
+            const latestOCF = companyData.cashFlow.operatingCashFlow[0];
+            const latestRevenue = companyData.incomeStatement.revenue[0];
+            const prevOCF = companyData.cashFlow.operatingCashFlow[1];
+            const prevRevenue = companyData.incomeStatement.revenue[1];
+
+            const currentMargin = (latestOCF.value / latestRevenue.value * 100);
+            const prevMargin = (prevOCF.value / prevRevenue.value * 100);
+            const changePercent = currentMargin - prevMargin;
+            const isPositive = changePercent > 0;
+
+            return (
+              <div className={`rounded-lg p-4 ${isPositive ? 'bg-blue-50 dark:bg-blue-900/20' : 'bg-yellow-50 dark:bg-yellow-900/20'} flex flex-col`}>
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-medium text-gray-700 dark:text-dark-text-secondary">Cash Flow Margin</h3>
+                  <span className={`text-xs px-2 py-1 rounded-full font-bold ${isPositive ? 'bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-200' : 'bg-yellow-100 dark:bg-yellow-800 text-yellow-800 dark:text-yellow-200'}`}>
+                    {isPositive ? '↑' : '↓'} {Math.abs(changePercent).toFixed(1)}pp
+                  </span>
+                </div>
+                <p className="mt-2 text-2xl font-bold text-gray-900 dark:text-dark-text-primary">{currentMargin.toFixed(1)}%</p>
+                <p className="mt-1 text-xs text-gray-500 dark:text-dark-text-secondary">
+                  vs {prevMargin.toFixed(1)}% ({prevOCF.year})
+                </p>
+              </div>
+            );
+          })()}
         </div>
       </div>
     </div>
