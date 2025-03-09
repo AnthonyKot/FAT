@@ -1,4 +1,5 @@
 import { Company, CompanyData } from '../types';
+import { calculateOperationalMetrics, calculatePerShareMetrics, calculateValuationMetrics } from '../utils/dataAdapter';
 
 export const mockCompanies: Company[] = [
   {
@@ -220,7 +221,7 @@ export const mockCompanyData: Record<string, CompanyData> = {
     currentPrice: 390.47,
     yearHigh: 420.82,
     yearLow: 275.37,
-    dividendYield: 0.0073,
+    dividendYield: 0.0073, // ~0.73% dividend yield
     beta: 0.92
   },
   'GOOG': {
@@ -590,3 +591,11 @@ export const mockCompanyData: Record<string, CompanyData> = {
     beta: 0.85
   }
 };
+
+// Enrich mock data with calculated metrics
+Object.keys(mockCompanyData).forEach(key => {
+  const company = mockCompanyData[key];
+  company.operationalMetrics = calculateOperationalMetrics(company);
+  company.valuationMetrics = calculateValuationMetrics(company);
+  company.perShareMetrics = calculatePerShareMetrics(company);
+});

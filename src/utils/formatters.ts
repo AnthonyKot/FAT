@@ -56,6 +56,31 @@ export const formatLargeNumber = (value: number | undefined | null): string => {
 };
 
 /**
+ * Formats a currency value with human-readable suffixes (K, M, B, T)
+ */
+export const formatCurrencyAbbreviated = (value: number | undefined | null): string => {
+  // Handle undefined or null values
+  if (value === undefined || value === null) {
+    return 'N/A';
+  }
+  
+  const absValue = Math.abs(value);
+  const prefix = '$';
+  
+  if (absValue >= 1_000_000_000_000) {
+    return `${prefix}${(value / 1_000_000_000_000).toFixed(1)}T`;
+  } else if (absValue >= 1_000_000_000) {
+    return `${prefix}${(value / 1_000_000_000).toFixed(1)}B`;
+  } else if (absValue >= 1_000_000) {
+    return `${prefix}${(value / 1_000_000).toFixed(1)}M`;
+  } else if (absValue >= 1_000) {
+    return `${prefix}${(value / 1_000).toFixed(1)}K`;
+  } else {
+    return `${prefix}${value.toFixed(2)}`;
+  }
+};
+
+/**
  * Formats a number with a specific number of decimal places
  */
 export const formatNumber = (value: number | undefined | null, decimals: number = 2): string => {

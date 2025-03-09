@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, Loader2 } from 'lucide-react';
 import { Company } from '../types';
 
@@ -17,10 +17,27 @@ const CompanySelector: React.FC<CompanySelectorProps> = ({
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   
-  const filteredCompanies = companies.filter(company => 
+  // Detect changes in companies array
+  useEffect(() => {
+    // Reset search term when companies list changes or a company is selected
+    setSearchTerm('');
+  }, [companies.length, selectedCompany?.id]);
+  
+  // First filter companies based on search term
+  const filteredBySearch = companies.filter(company => 
     company.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
     company.symbol.toLowerCase().includes(searchTerm.toLowerCase())
   );
+  
+  // Sort the filtered companies: selected company first, then alphabetically
+  const filteredCompanies = filteredBySearch.sort((a, b) => {
+    // If a is the selected company, it should come first
+    if (selectedCompany && a.id === selectedCompany.id) return -1;
+    // If b is the selected company, it should come first
+    if (selectedCompany && b.id === selectedCompany.id) return 1;
+    // Otherwise sort alphabetically by company name
+    return a.name.localeCompare(b.name);
+  });
 
   return (
     <div className={`bg-white dark:bg-dark-surface p-4 sm:p-6 rounded-lg shadow dark:shadow-gray-800 ${isLoading ? 'opacity-75' : ''}`}>
@@ -59,7 +76,9 @@ const CompanySelector: React.FC<CompanySelectorProps> = ({
                 >
                   <div className="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-md">
                     {company.logo ? (
-                      <img src={company.logo} alt={company.name} className="w-5 h-5 sm:w-6 sm:h-6" />
+                      <div className="w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center">
+                        <img src={company.logo} alt={company.name} className="max-w-full max-h-full object-contain" />
+                      </div>
                     ) : (
                       <span className="text-gray-500 dark:text-gray-400 font-semibold text-xs sm:text-sm">{company.symbol.substring(0, 2)}</span>
                     )}

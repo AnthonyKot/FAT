@@ -16,7 +16,7 @@ interface OverviewProps {
   competitorData: CompanyData | null;
 }
 
-const Overview: React.FC<OverviewProps> = ({ companyData, competitorData }) => {
+const FullOverview: React.FC<OverviewProps> = ({ companyData, competitorData }) => {
   if (!companyData) return null;
   
   // State for widget ranking debug view

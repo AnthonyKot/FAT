@@ -16,9 +16,8 @@ const API_BASE_URL = API_CONFIG.FMP_BASE_URL;
 // Get API key from config
 const API_KEY = API_CONFIG.FMP_API_KEY;
 
-// Cache to minimize API calls
-const cache: Record<string, { data: any; timestamp: number }> = {};
-const CACHE_EXPIRY = API_CONFIG.CACHE_DURATION;
+// Import persistent cache
+import { cachedFetch } from './cacheUtils';
 
 /**
  * Gets mock data from sampleApiResponse.ts for testing and development
@@ -91,32 +90,27 @@ async function apiRequest<T>(endpoint: string, params: Record<string, string> = 
   // Create cache key from the endpoint and params
   const queryString = new URLSearchParams({ ...params, apikey: API_KEY }).toString();
   const url = `${API_BASE_URL}${endpoint}?${queryString}`;
-  const cacheKey = url;
+  const cacheKey = `${endpoint}_${JSON.stringify(params)}`;
 
-  // Check if we have a valid cached response
-  const cachedResponse = cache[cacheKey];
-  if (cachedResponse && Date.now() - cachedResponse.timestamp < CACHE_EXPIRY) {
-    return cachedResponse.data as T;
-  }
-
-  try {
-    // Make the API request
-    const response = await fetch(url);
-    
-    if (!response.ok) {
-      throw new Error(`API request failed with status: ${response.status}`);
-    }
-    
-    const data = await response.json();
-    
-    // Cache the response
-    cache[cacheKey] = { data, timestamp: Date.now() };
-    
-    return data as T;
-  } catch (error) {
-    console.error('API request error:', error);
-    throw error;
-  }
+  // Use the persistent cache utility
+  return cachedFetch<T>(
+    async () => {
+      try {
+        // Make the API request
+        const response = await fetch(url);
+        
+        if (!response.ok) {
+          throw new Error(`API request failed with status: ${response.status}`);
+        }
+        
+        return await response.json();
+      } catch (error) {
+        console.error('API request error:', error);
+        throw error;
+      }
+    },
+    cacheKey
+  );
 }
 
 /**
@@ -124,6 +118,54 @@ async function apiRequest<T>(endpoint: string, params: Record<string, string> = 
  * @param ticker - Company stock ticker symbol
  */
 export async function getCompanyProfile(ticker: string): Promise<CompanyProfileResponse[]> {
+  if (!FEATURES.ENABLE_REAL_API) {
+    // If we're using mock data, check if we have a profile for this ticker
+    const { mockCompanies } = await import('../data/mockData');
+    const mockCompany = mockCompanies.find(c => c.symbol === ticker);
+    
+    if (mockCompany) {
+      // Create a mock profile based on the mock company data
+      return [{
+        symbol: mockCompany.symbol,
+        price: 100 + Math.random() * 200,
+        beta: 1 + Math.random(),
+        volAvg: 1000000 + Math.random() * 10000000,
+        mktCap: 10000000000 + Math.random() * 100000000000,
+        lastDiv: Math.random() * 5,
+        range: "50-150",
+        changes: Math.random() * 10 - 5,
+        companyName: mockCompany.name,
+        currency: "USD",
+        cik: "0000000000",
+        isin: "US0000000000",
+        cusip: "000000000",
+        exchange: "NASDAQ Global Select",
+        exchangeShortName: "NASDAQ",
+        industry: mockCompany.industry || "Technology",
+        website: `https://www.${mockCompany.symbol.toLowerCase()}.com`,
+        description: `${mockCompany.name} is a leading company in the ${mockCompany.industry} industry.`,
+        ceo: "John Doe",
+        sector: mockCompany.industry || "Technology",
+        country: "US",
+        fullTimeEmployees: "10000",
+        phone: "(123) 456-7890",
+        address: "123 Main St",
+        city: "New York",
+        state: "NY",
+        zip: "10001",
+        dcfDiff: 10,
+        dcf: 100,
+        image: mockCompany.logo || `https://via.placeholder.com/150?text=${mockCompany.symbol}`,
+        ipoDate: "2000-01-01",
+        defaultImage: false,
+        isEtf: false,
+        isActivelyTrading: true,
+        isAdr: false,
+        isFund: false
+      }];
+    }
+  }
+  
   return apiRequest(`/profile/${ticker}`);
 }
 
@@ -217,6 +259,46 @@ export interface HistoricalPriceResponse {
  * @param query - Search query
  * @param limit - Maximum number of results to return
  */
-export async function searchCompanies(query: string, limit: number = 10) {
-  return apiRequest(`/search`, { query, limit: limit.toString() });
+export async function searchCompanies(query: string, limit: number = 10): Promise<{symbol: string, name: string, currency: string, stockExchange: string, exchangeShortName: string}[]> {
+  if (!FEATURES.ENABLE_REAL_API) {
+    // Return filtered mock companies if using mock data
+    const { mockCompanies } = await import('../data/mockData');
+    return mockCompanies
+      .filter(company => 
+        company.name.toLowerCase().includes(query.toLowerCase()) || 
+        company.symbol.toLowerCase().includes(query.toLowerCase())
+      )
+      .slice(0, limit)
+      .map(company => ({
+        symbol: company.symbol,
+        name: company.name,
+        currency: 'USD',
+        stockExchange: 'NASDAQ',
+        exchangeShortName: 'NASDAQ'
+      }));
+  }
+  
+  try {
+    // Get search results
+    const results = await apiRequest<{symbol: string, name: string, currency: string, stockExchange: string, exchangeShortName: string}[]>(`/search`, { query, limit: limit.toString() });
+    
+    // Filter to only US exchanges (most free plans only support US stocks)
+    const usExchangeIdentifiers = ['NYSE', 'NASDAQ', 'AMEX', 'CBOE', 'US'];
+    
+    return results.filter(item => {
+      // Check if exchange appears to be US-based
+      const isUSExchange = 
+        usExchangeIdentifiers.some(id => 
+          item.exchangeShortName?.includes(id) || 
+          item.stockExchange?.includes(id)
+        );
+      
+      // Keep US exchanges and ones with USD currency
+      return isUSExchange || item.currency === 'USD';
+    });
+  } catch (error) {
+    console.error('Error searching companies:', error);
+    // Return empty array in case of error
+    return [];
+  }
 }

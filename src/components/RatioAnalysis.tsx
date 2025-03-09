@@ -20,33 +20,43 @@ const RatioAnalysis: React.FC<RatioAnalysisProps> = ({ companyData, competitorDa
   const getCategoryData = () => {
     switch (category) {
       case 'valuation':
+        // Sort years in chronological order (ascending)
+        const sortedYears = [...companyData.ratios.peRatio]
+          .sort((a, b) => a.year - b.year)
+          .map(item => item.year.toString());
+        
+        // Map sortedYears indices to original data indices
+        const yearOrder = sortedYears.map(year => 
+          companyData.ratios.peRatio.findIndex(item => item.year.toString() === year)
+        );
+        
         return {
-          labels: companyData.ratios.peRatio.map(item => item.year.toString()),
+          labels: sortedYears,
           datasets: [
             {
               label: `${companyData.company.name} - P/E Ratio`,
-              data: companyData.ratios.peRatio.map(item => item.value),
+              data: yearOrder.map(idx => companyData.ratios.peRatio[idx].value),
               backgroundColor: 'rgba(59, 130, 246, 0.5)',
               borderColor: 'rgb(59, 130, 246)',
               borderWidth: 2
             },
             {
               label: `${companyData.company.name} - P/B Ratio`,
-              data: companyData.ratios.pbRatio.map(item => item.value),
+              data: yearOrder.map(idx => companyData.ratios.pbRatio[idx].value),
               backgroundColor: 'rgba(16, 185, 129, 0.5)',
               borderColor: 'rgb(16, 185, 129)',
               borderWidth: 2
             },
             {
               label: `${companyData.company.name} - P/S Ratio`,
-              data: companyData.ratios.psRatio.map(item => item.value),
+              data: yearOrder.map(idx => companyData.ratios.psRatio[idx].value),
               backgroundColor: 'rgba(245, 158, 11, 0.5)',
               borderColor: 'rgb(245, 158, 11)',
               borderWidth: 2
             },
             {
               label: `${companyData.company.name} - EV/EBITDA`,
-              data: companyData.ratios.evToEbitda.map(item => item.value),
+              data: yearOrder.map(idx => companyData.ratios.evToEbitda[idx].value),
               backgroundColor: 'rgba(139, 92, 246, 0.5)',
               borderColor: 'rgb(139, 92, 246)',
               borderWidth: 2
@@ -54,7 +64,7 @@ const RatioAnalysis: React.FC<RatioAnalysisProps> = ({ companyData, competitorDa
             ...(competitorData ? [
               {
                 label: `${competitorData.company.name} - P/E Ratio`,
-                data: competitorData.ratios.peRatio.map(item => item.value),
+                data: yearOrder.map(idx => competitorData.ratios.peRatio[idx].value),
                 backgroundColor: 'rgba(239, 68, 68, 0.5)',
                 borderColor: 'rgb(239, 68, 68)',
                 borderWidth: 2,
@@ -62,7 +72,7 @@ const RatioAnalysis: React.FC<RatioAnalysisProps> = ({ companyData, competitorDa
               },
               {
                 label: `${competitorData.company.name} - P/B Ratio`,
-                data: competitorData.ratios.pbRatio.map(item => item.value),
+                data: yearOrder.map(idx => competitorData.ratios.pbRatio[idx].value),
                 backgroundColor: 'rgba(52, 211, 153, 0.5)',
                 borderColor: 'rgb(52, 211, 153)',
                 borderWidth: 2,
@@ -72,33 +82,43 @@ const RatioAnalysis: React.FC<RatioAnalysisProps> = ({ companyData, competitorDa
           ]
         };
       case 'profitability':
+        // Sort years in chronological order (ascending)
+        const profitSortedYears = [...companyData.ratios.returnOnEquity]
+          .sort((a, b) => a.year - b.year)
+          .map(item => item.year.toString());
+        
+        // Map sortedYears indices to original data indices
+        const profitYearOrder = profitSortedYears.map(year => 
+          companyData.ratios.returnOnEquity.findIndex(item => item.year.toString() === year)
+        );
+        
         return {
-          labels: companyData.ratios.returnOnEquity.map(item => item.year.toString()),
+          labels: profitSortedYears,
           datasets: [
             {
               label: `${companyData.company.name} - ROE`,
-              data: companyData.ratios.returnOnEquity.map(item => item.value * 100),
+              data: profitYearOrder.map(idx => companyData.ratios.returnOnEquity[idx].value * 100),
               backgroundColor: 'rgba(59, 130, 246, 0.5)',
               borderColor: 'rgb(59, 130, 246)',
               borderWidth: 2
             },
             {
               label: `${companyData.company.name} - ROA`,
-              data: companyData.ratios.returnOnAssets.map(item => item.value * 100),
+              data: profitYearOrder.map(idx => companyData.ratios.returnOnAssets[idx].value * 100),
               backgroundColor: 'rgba(16, 185, 129, 0.5)',
               borderColor: 'rgb(16, 185, 129)',
               borderWidth: 2
             },
             {
               label: `${companyData.company.name} - Net Margin`,
-              data: companyData.ratios.netProfitMargin.map(item => item.value * 100),
+              data: profitYearOrder.map(idx => companyData.ratios.netProfitMargin[idx].value * 100),
               backgroundColor: 'rgba(245, 158, 11, 0.5)',
               borderColor: 'rgb(245, 158, 11)',
               borderWidth: 2
             },
             {
               label: `${companyData.company.name} - Gross Margin`,
-              data: companyData.ratios.grossProfitMargin.map(item => item.value * 100),
+              data: profitYearOrder.map(idx => companyData.ratios.grossProfitMargin[idx].value * 100),
               backgroundColor: 'rgba(139, 92, 246, 0.5)',
               borderColor: 'rgb(139, 92, 246)',
               borderWidth: 2
@@ -106,7 +126,7 @@ const RatioAnalysis: React.FC<RatioAnalysisProps> = ({ companyData, competitorDa
             ...(competitorData ? [
               {
                 label: `${competitorData.company.name} - ROE`,
-                data: competitorData.ratios.returnOnEquity.map(item => item.value * 100),
+                data: profitYearOrder.map(idx => competitorData.ratios.returnOnEquity[idx].value * 100),
                 backgroundColor: 'rgba(239, 68, 68, 0.5)',
                 borderColor: 'rgb(239, 68, 68)',
                 borderWidth: 2,
@@ -114,7 +134,7 @@ const RatioAnalysis: React.FC<RatioAnalysisProps> = ({ companyData, competitorDa
               },
               {
                 label: `${competitorData.company.name} - Net Margin`,
-                data: competitorData.ratios.netProfitMargin.map(item => item.value * 100),
+                data: profitYearOrder.map(idx => competitorData.ratios.netProfitMargin[idx].value * 100),
                 backgroundColor: 'rgba(245, 158, 11, 0.5)',
                 borderColor: 'rgb(245, 158, 11)',
                 borderWidth: 2,
@@ -124,19 +144,29 @@ const RatioAnalysis: React.FC<RatioAnalysisProps> = ({ companyData, competitorDa
           ]
         };
       case 'growth':
+        // Sort years in chronological order (ascending)
+        const growthSortedYears = [...companyData.ratios.revenueGrowth]
+          .sort((a, b) => a.year - b.year)
+          .map(item => item.year.toString());
+        
+        // Map sortedYears indices to original data indices
+        const growthYearOrder = growthSortedYears.map(year => 
+          companyData.ratios.revenueGrowth.findIndex(item => item.year.toString() === year)
+        );
+        
         return {
-          labels: companyData.ratios.revenueGrowth.map(item => item.year.toString()),
+          labels: growthSortedYears,
           datasets: [
             {
               label: `${companyData.company.name} - Revenue Growth`,
-              data: companyData.ratios.revenueGrowth.map(item => item.value * 100),
+              data: growthYearOrder.map(idx => companyData.ratios.revenueGrowth[idx].value * 100),
               backgroundColor: 'rgba(59, 130, 246, 0.5)',
               borderColor: 'rgb(59, 130, 246)',
               borderWidth: 2
             },
             {
               label: `${companyData.company.name} - EPS Growth`,
-              data: companyData.ratios.epsGrowth.map(item => item.value * 100),
+              data: growthYearOrder.map(idx => companyData.ratios.epsGrowth[idx].value * 100),
               backgroundColor: 'rgba(16, 185, 129, 0.5)',
               borderColor: 'rgb(16, 185, 129)',
               borderWidth: 2
@@ -144,7 +174,7 @@ const RatioAnalysis: React.FC<RatioAnalysisProps> = ({ companyData, competitorDa
             ...(competitorData ? [
               {
                 label: `${competitorData.company.name} - Revenue Growth`,
-                data: competitorData.ratios.revenueGrowth.map(item => item.value * 100),
+                data: growthYearOrder.map(idx => competitorData.ratios.revenueGrowth[idx].value * 100),
                 backgroundColor: 'rgba(239, 68, 68, 0.5)',
                 borderColor: 'rgb(239, 68, 68)',
                 borderWidth: 2,
@@ -152,7 +182,7 @@ const RatioAnalysis: React.FC<RatioAnalysisProps> = ({ companyData, competitorDa
               },
               {
                 label: `${competitorData.company.name} - EPS Growth`,
-                data: competitorData.ratios.epsGrowth.map(item => item.value * 100),
+                data: growthYearOrder.map(idx => competitorData.ratios.epsGrowth[idx].value * 100),
                 backgroundColor: 'rgba(52, 211, 153, 0.5)',
                 borderColor: 'rgb(52, 211, 153)',
                 borderWidth: 2,
@@ -162,26 +192,36 @@ const RatioAnalysis: React.FC<RatioAnalysisProps> = ({ companyData, competitorDa
           ]
         };
       case 'risk':
+        // Sort years in chronological order (ascending)
+        const riskSortedYears = [...companyData.ratios.debtToEquity]
+          .sort((a, b) => a.year - b.year)
+          .map(item => item.year.toString());
+        
+        // Map sortedYears indices to original data indices
+        const riskYearOrder = riskSortedYears.map(year => 
+          companyData.ratios.debtToEquity.findIndex(item => item.year.toString() === year)
+        );
+        
         return {
-          labels: companyData.ratios.debtToEquity.map(item => item.year.toString()),
+          labels: riskSortedYears,
           datasets: [
             {
               label: `${companyData.company.name} - Debt to Equity`,
-              data: companyData.ratios.debtToEquity.map(item => item.value),
+              data: riskYearOrder.map(idx => companyData.ratios.debtToEquity[idx].value),
               backgroundColor: 'rgba(59, 130, 246, 0.5)',
               borderColor: 'rgb(59, 130, 246)',
               borderWidth: 2
             },
             {
               label: `${companyData.company.name} - Current Ratio`,
-              data: companyData.ratios.currentRatio.map(item => item.value),
+              data: riskYearOrder.map(idx => companyData.ratios.currentRatio[idx].value),
               backgroundColor: 'rgba(16, 185, 129, 0.5)',
               borderColor: 'rgb(16, 185, 129)',
               borderWidth: 2
             },
             {
               label: `${companyData.company.name} - Quick Ratio`,
-              data: companyData.ratios.quickRatio.map(item => item.value),
+              data: riskYearOrder.map(idx => companyData.ratios.quickRatio[idx].value),
               backgroundColor: 'rgba(245, 158, 11, 0.5)',
               borderColor: 'rgb(245, 158, 11)',
               borderWidth: 2
@@ -189,7 +229,7 @@ const RatioAnalysis: React.FC<RatioAnalysisProps> = ({ companyData, competitorDa
             ...(competitorData ? [
               {
                 label: `${competitorData.company.name} - Debt to Equity`,
-                data: competitorData.ratios.debtToEquity.map(item => item.value),
+                data: riskYearOrder.map(idx => competitorData.ratios.debtToEquity[idx].value),
                 backgroundColor: 'rgba(239, 68, 68, 0.5)',
                 borderColor: 'rgb(239, 68, 68)',
                 borderWidth: 2,
@@ -197,7 +237,7 @@ const RatioAnalysis: React.FC<RatioAnalysisProps> = ({ companyData, competitorDa
               },
               {
                 label: `${competitorData.company.name} - Current Ratio`,
-                data: competitorData.ratios.currentRatio.map(item => item.value),
+                data: riskYearOrder.map(idx => competitorData.ratios.currentRatio[idx].value),
                 backgroundColor: 'rgba(52, 211, 153, 0.5)',
                 borderColor: 'rgb(52, 211, 153)',
                 borderWidth: 2,
@@ -207,19 +247,29 @@ const RatioAnalysis: React.FC<RatioAnalysisProps> = ({ companyData, competitorDa
           ]
         };
       case 'efficiency':
+        // Sort years in chronological order (ascending)
+        const efficiencySortedYears = [...companyData.ratios.assetTurnover]
+          .sort((a, b) => a.year - b.year)
+          .map(item => item.year.toString());
+        
+        // Map sortedYears indices to original data indices
+        const efficiencyYearOrder = efficiencySortedYears.map(year => 
+          companyData.ratios.assetTurnover.findIndex(item => item.year.toString() === year)
+        );
+        
         return {
-          labels: companyData.ratios.assetTurnover.map(item => item.year.toString()),
+          labels: efficiencySortedYears,
           datasets: [
             {
               label: `${companyData.company.name} - Asset Turnover`,
-              data: companyData.ratios.assetTurnover.map(item => item.value),
+              data: efficiencyYearOrder.map(idx => companyData.ratios.assetTurnover[idx].value),
               backgroundColor: 'rgba(59, 130, 246, 0.5)',
               borderColor: 'rgb(59, 130, 246)',
               borderWidth: 2
             },
             {
               label: `${companyData.company.name} - Inventory Turnover`,
-              data: companyData.ratios.inventoryTurnover.map(item => item.value),
+              data: efficiencyYearOrder.map(idx => companyData.ratios.inventoryTurnover[idx].value),
               backgroundColor: 'rgba(16, 185, 129, 0.5)',
               borderColor: 'rgb(16, 185, 129)',
               borderWidth: 2
@@ -227,7 +277,7 @@ const RatioAnalysis: React.FC<RatioAnalysisProps> = ({ companyData, competitorDa
             ...(competitorData ? [
               {
                 label: `${competitorData.company.name} - Asset Turnover`,
-                data: competitorData.ratios.assetTurnover.map(item => item.value),
+                data: efficiencyYearOrder.map(idx => competitorData.ratios.assetTurnover[idx].value),
                 backgroundColor: 'rgba(239, 68, 68, 0.5)',
                 borderColor: 'rgb(239, 68, 68)',
                 borderWidth: 2,
@@ -235,7 +285,7 @@ const RatioAnalysis: React.FC<RatioAnalysisProps> = ({ companyData, competitorDa
               },
               {
                 label: `${competitorData.company.name} - Inventory Turnover`,
-                data: competitorData.ratios.inventoryTurnover.map(item => item.value),
+                data: efficiencyYearOrder.map(idx => competitorData.ratios.inventoryTurnover[idx].value),
                 backgroundColor: 'rgba(52, 211, 153, 0.5)',
                 borderColor: 'rgb(52, 211, 153)',
                 borderWidth: 2,

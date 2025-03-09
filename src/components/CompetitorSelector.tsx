@@ -21,10 +21,21 @@ const CompetitorSelector: React.FC<CompetitorSelectorProps> = ({
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   
-  const filteredCompanies = companies.filter(company => 
+  // First filter companies based on search term
+  const filteredBySearch = companies.filter(company => 
     company.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
     company.symbol.toLowerCase().includes(searchTerm.toLowerCase())
   );
+  
+  // Sort the filtered companies: selected company first, then alphabetically  
+  const filteredCompanies = filteredBySearch.sort((a, b) => {
+    // If a is the selected company, it should come first
+    if (selectedCompany && a.id === selectedCompany.id) return -1;
+    // If b is the selected company, it should come first
+    if (selectedCompany && b.id === selectedCompany.id) return 1;
+    // Otherwise sort alphabetically by company name
+    return a.name.localeCompare(b.name);
+  });
 
   return (
     <div className={`bg-white dark:bg-dark-surface p-6 rounded-lg shadow dark:shadow-gray-800 ${disabled ? 'opacity-70' : ''} ${isLoading ? 'opacity-75' : ''}`}>
@@ -70,7 +81,9 @@ const CompetitorSelector: React.FC<CompetitorSelectorProps> = ({
                   >
                     <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-md">
                       {company.logo ? (
-                        <img src={company.logo} alt={company.name} className="w-6 h-6" />
+                        <div className="w-6 h-6 flex items-center justify-center">
+                          <img src={company.logo} alt={company.name} className="max-w-full max-h-full object-contain" />
+                        </div>
                       ) : (
                         <span className="text-gray-500 dark:text-gray-400 font-semibold">{company.symbol.substring(0, 2)}</span>
                       )}

@@ -1,7 +1,7 @@
 // Data Adapter
 // This utility transforms API responses from FinancialModelingPrep into our application's data model
 
-import { CompanyData } from '../types';
+import { CompanyData, FinancialData, OperationalMetrics, PerShareMetrics, ValuationMetrics } from '../types';
 import { 
   getCompanyProfile, 
   getIncomeStatement, 
@@ -97,7 +97,7 @@ export async function fetchCompanyData(ticker: string): Promise<CompanyData> {
       currentPrice: quote.price || 0,
       yearHigh: quote.yearHigh || 0,
       yearLow: quote.yearLow || 0,
-      dividendYield: profile.lastDiv || 0,
+      dividendYield: (profile.lastDiv / profile.price) || 0, // Calculate yield as dividend/price
       beta: profile.beta || 0,
       stockPrices: [], // Will be filled separately with historical data
       balanceSheet: {
@@ -337,9 +337,274 @@ export async function fetchCompanyData(ticker: string): Promise<CompanyData> {
       // Continue without historical prices if this fails
     }
     
+    // Calculate additional metrics
+    transformedData.operationalMetrics = calculateOperationalMetrics(transformedData);
+    transformedData.valuationMetrics = calculateValuationMetrics(transformedData);
+    transformedData.perShareMetrics = calculatePerShareMetrics(transformedData);
+    
     return transformedData;
   } catch (error) {
     console.error('Error fetching company data:', error);
     throw error;
   }
+}
+
+// Calculate operational efficiency metrics
+export function calculateOperationalMetrics(company: CompanyData): OperationalMetrics {
+  const { balanceSheet, incomeStatement, cashFlow } = company;
+  
+  // Calculate Days of Inventory On Hand
+  const daysOfInventoryOnHand = balanceSheet.inventory.map((item, index) => {
+    const costOfRevenue = incomeStatement.costOfRevenue[index]?.value || 1;
+    const daysInYear = 365;
+    return {
+      year: item.year,
+      quarter: item.quarter,
+      value: (item.value / (costOfRevenue / daysInYear))
+    };
+  });
+  
+  // Calculate Days Payables Outstanding
+  const daysPayablesOutstanding = balanceSheet.accountsPayable.map((item, index) => {
+    const costOfRevenue = incomeStatement.costOfRevenue[index]?.value || 1;
+    const daysInYear = 365;
+    return {
+      year: item.year,
+      quarter: item.quarter,
+      value: (item.value / (costOfRevenue / daysInYear))
+    };
+  });
+  
+  // Calculate Days Sales Outstanding
+  const daysSalesOutstanding = balanceSheet.accountsReceivable.map((item, index) => {
+    const revenue = incomeStatement.revenue[index]?.value || 1;
+    const daysInYear = 365;
+    return {
+      year: item.year,
+      quarter: item.quarter,
+      value: (item.value / (revenue / daysInYear))
+    };
+  });
+  
+  // Calculate Cash Conversion Cycle
+  const cashConversionCycle = daysOfInventoryOnHand.map((item, index) => {
+    return {
+      year: item.year,
+      quarter: item.quarter,
+      value: item.value + daysSalesOutstanding[index].value - daysPayablesOutstanding[index].value
+    };
+  });
+  
+  // Calculate Income Quality (Operating Cash Flow / Net Income)
+  const incomeQuality = cashFlow.operatingCashFlow.map((item, index) => {
+    const netIncome = incomeStatement.netIncome[index]?.value || 1;
+    return {
+      year: item.year,
+      quarter: item.quarter,
+      value: item.value / netIncome
+    };
+  });
+  
+  // Calculate CapEx to Operating Cash Flow
+  const capexToOperatingCash = cashFlow.capitalExpenditures.map((item, index) => {
+    const opCashFlow = cashFlow.operatingCashFlow[index]?.value || 1;
+    // Use absolute value since CapEx is negative
+    return {
+      year: item.year,
+      quarter: item.quarter,
+      value: (Math.abs(item.value) / opCashFlow) * 100 // As percentage
+    };
+  });
+  
+  // Calculate R&D to Revenue (estimated from operating expenses assuming 15% of OpEx is R&D)
+  // Note: This is just an estimate as we don't have direct R&D data
+  const rdToRevenue = incomeStatement.operatingExpenses.map((item, index) => {
+    const revenue = incomeStatement.revenue[index]?.value || 1;
+    const estimatedRD = item.value * 0.15; // Rough estimate that 15% of OpEx is R&D
+    return {
+      year: item.year,
+      quarter: item.quarter,
+      value: (estimatedRD / revenue) * 100 // As percentage
+    };
+  });
+  
+  return {
+    daysOfInventoryOnHand,
+    daysPayablesOutstanding,
+    daysSalesOutstanding,
+    cashConversionCycle,
+    incomeQuality,
+    capexToOperatingCash,
+    rdToRevenue
+  };
+}
+
+// Calculate valuation metrics
+export function calculateValuationMetrics(company: CompanyData): ValuationMetrics {
+  const { incomeStatement, balanceSheet, cashFlow, marketCap } = company;
+  
+  // Calculate Graham Number
+  const grahamNumber = incomeStatement.eps.map((epsItem, index) => {
+    const bookValuePerShare = balanceSheet.totalEquity[index]?.value / 
+                             (marketCap / company.currentPrice); // Rough estimate of shares outstanding
+    return {
+      year: epsItem.year,
+      quarter: epsItem.quarter,
+      value: Math.sqrt(15 * epsItem.value * 1.5 * bookValuePerShare)
+    };
+  });
+  
+  // Calculate Free Cash Flow Yield
+  const freeCashFlowYield = cashFlow.freeCashFlow.map((item) => {
+    return {
+      year: item.year,
+      quarter: item.quarter,
+      value: (item.value / marketCap) * 100 // As percentage
+    };
+  });
+  
+  // Calculate PEG Ratio
+  const pegRatio = incomeStatement.eps.map((item, index) => {
+    // Find corresponding growth rate (if available)
+    const growth = company.ratios.epsGrowth.find(g => g.year === item.year)?.value || 0.05; // Default to 5% if not found
+    const pe = company.ratios.peRatio.find(p => p.year === item.year)?.value || 15; // Default to 15 if not found
+    
+    return {
+      year: item.year,
+      quarter: item.quarter,
+      value: growth > 0 ? pe / (growth * 100) : 0 // Convert growth to percentage
+    };
+  });
+  
+  // Calculate Enterprise Value to Sales
+  const evToSales = incomeStatement.revenue.map((item, index) => {
+    const totalDebt = (balanceSheet.longTermDebt[index]?.value || 0) + 
+                      (balanceSheet.shortTermDebt[index]?.value || 0);
+    const cash = balanceSheet.cashAndEquivalents[index]?.value || 0;
+    const enterpriseValue = marketCap + totalDebt - cash;
+    
+    return {
+      year: item.year,
+      quarter: item.quarter,
+      value: enterpriseValue / item.value
+    };
+  });
+  
+  // Calculate Enterprise Value to Free Cash Flow
+  const evToFcf = cashFlow.freeCashFlow.map((item, index) => {
+    const totalDebt = (balanceSheet.longTermDebt[index]?.value || 0) + 
+                      (balanceSheet.shortTermDebt[index]?.value || 0);
+    const cash = balanceSheet.cashAndEquivalents[index]?.value || 0;
+    const enterpriseValue = marketCap + totalDebt - cash;
+    
+    return {
+      year: item.year,
+      quarter: item.quarter,
+      value: item.value !== 0 ? enterpriseValue / item.value : 0
+    };
+  });
+  
+  // Calculate Net Debt to EBITDA
+  const netDebtToEbitda = incomeStatement.ebitda.map((item, index) => {
+    const totalDebt = (balanceSheet.longTermDebt[index]?.value || 0) + 
+                      (balanceSheet.shortTermDebt[index]?.value || 0);
+    const cash = balanceSheet.cashAndEquivalents[index]?.value || 0;
+    const netDebt = totalDebt - cash;
+    
+    return {
+      year: item.year,
+      quarter: item.quarter,
+      value: item.value !== 0 ? netDebt / item.value : 0
+    };
+  });
+  
+  // Calculate Return on Invested Capital (ROIC)
+  const returnOnInvestedCapital = incomeStatement.netIncome.map((item, index) => {
+    const totalEquity = balanceSheet.totalEquity[index]?.value || 1;
+    const totalDebt = (balanceSheet.longTermDebt[index]?.value || 0) + 
+                      (balanceSheet.shortTermDebt[index]?.value || 0);
+    const investedCapital = totalEquity + totalDebt;
+    
+    return {
+      year: item.year,
+      quarter: item.quarter,
+      value: (item.value / investedCapital) * 100 // As percentage
+    };
+  });
+  
+  return {
+    grahamNumber,
+    freeCashFlowYield,
+    pegRatio,
+    evToSales,
+    evToFcf,
+    netDebtToEbitda,
+    returnOnInvestedCapital
+  };
+}
+
+// Calculate per share metrics
+export function calculatePerShareMetrics(company: CompanyData): PerShareMetrics {
+  const { incomeStatement, balanceSheet, cashFlow, marketCap, currentPrice } = company;
+  
+  // Estimate shares outstanding based on market cap and current price
+  const sharesOutstanding = marketCap / currentPrice;
+  
+  // Calculate Revenue Per Share
+  const revenuePerShare = incomeStatement.revenue.map((item) => {
+    return {
+      year: item.year,
+      quarter: item.quarter,
+      value: item.value / sharesOutstanding
+    };
+  });
+  
+  // Calculate Operating Cash Flow Per Share
+  const operatingCashFlowPerShare = cashFlow.operatingCashFlow.map((item) => {
+    return {
+      year: item.year,
+      quarter: item.quarter,
+      value: item.value / sharesOutstanding
+    };
+  });
+  
+  // Calculate Free Cash Flow Per Share
+  const freeCashFlowPerShare = cashFlow.freeCashFlow.map((item) => {
+    return {
+      year: item.year,
+      quarter: item.quarter,
+      value: item.value / sharesOutstanding
+    };
+  });
+  
+  // Calculate Book Value Per Share
+  const bookValuePerShare = balanceSheet.totalEquity.map((item) => {
+    return {
+      year: item.year,
+      quarter: item.quarter,
+      value: item.value / sharesOutstanding
+    };
+  });
+  
+  // Calculate Tangible Book Value Per Share
+  const tangibleBookValuePerShare = balanceSheet.totalEquity.map((item, index) => {
+    const intangibles = (balanceSheet.goodwill[index]?.value || 0) + 
+                        (balanceSheet.intangibleAssets[index]?.value || 0);
+    const tangibleBookValue = item.value - intangibles;
+    
+    return {
+      year: item.year,
+      quarter: item.quarter,
+      value: tangibleBookValue / sharesOutstanding
+    };
+  });
+  
+  return {
+    revenuePerShare,
+    netIncomePerShare: incomeStatement.eps, // Already eps in the data
+    operatingCashFlowPerShare,
+    freeCashFlowPerShare,
+    bookValuePerShare,
+    tangibleBookValuePerShare
+  };
 }

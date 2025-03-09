@@ -5,6 +5,7 @@ import { ChartData } from '../types';
 import ChartTooltip from './ChartTooltip';
 import { getTermDefinition } from '../utils/financialTerms';
 import { chartColorSchemes, getColorByIndex } from '../utils/chartColors';
+import { formatCurrencyAbbreviated, formatLargeNumber } from '../utils/formatters';
 
 // Register ChartJS components
 ChartJS.register(
@@ -25,6 +26,7 @@ interface FinancialChartProps {
   tooltipPrefix?: string;
   tooltipSuffix?: string;
   tooltipCallback?: (value: number) => string;
+  yAxisFormatType?: 'currency' | 'number' | 'none'; // Type of formatting for y-axis ticks
   title?: string;
   termKey?: string; // Key to find the financial term definition
   description?: string; // Optional custom description
@@ -38,6 +40,7 @@ const FinancialChart: React.FC<FinancialChartProps> = ({
   tooltipPrefix = '',
   tooltipSuffix = '',
   tooltipCallback,
+  yAxisFormatType = 'none',
   title,
   termKey,
   description,
@@ -147,14 +150,26 @@ const FinancialChart: React.FC<FinancialChartProps> = ({
         }
         
         let value = context.parsed.y;
+        const datasetTermKey = getTermKeyFromLabel(context.dataset.label || '');
+        
+        // Check if this is likely a currency value
+        const isCurrencyValue = 
+          datasetTermKey?.includes('revenue') || 
+          datasetTermKey?.includes('income') || 
+          datasetTermKey?.includes('assets') || 
+          datasetTermKey?.includes('liabilities') || 
+          datasetTermKey?.includes('ebitda') ||
+          tooltipPrefix === '$';
+        
         if (tooltipCallback) {
           label += tooltipPrefix + tooltipCallback(value) + tooltipSuffix;
+        } else if (isCurrencyValue) {
+          label += formatCurrencyAbbreviated(value);
         } else {
           label += tooltipPrefix + value.toFixed(2) + tooltipSuffix;
         }
 
         // Add definition if available
-        const datasetTermKey = getTermKeyFromLabel(context.dataset.label || '');
         if (datasetTermKey) {
           const termDefinition = getTermDefinition(datasetTermKey);
           if (termDefinition) {
@@ -188,13 +203,24 @@ const FinancialChart: React.FC<FinancialChartProps> = ({
         title: {
           display: !!yAxisLabel,
           text: yAxisLabel || '',
+        },
+        ticks: {
+          // Format the y-axis ticks based on the yAxisFormatType
+          callback: function(value) {
+            if (yAxisFormatType === 'currency') {
+              return formatCurrencyAbbreviated(value as number);
+            } else if (yAxisFormatType === 'number') {
+              return formatLargeNumber(value as number);
+            }
+            return value; // Default no formatting
+          }
         }
       }
     }
   };
 
   return (
-    <div className="w-full">
+    <div className="w-full flex flex-col">
       {title && termKey && (
         <div className="mb-3 flex items-center">
           <ChartTooltip title={title} termKey={termKey} />

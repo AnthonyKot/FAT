@@ -81,6 +81,37 @@ export interface StockPriceData {
   price: number;
 }
 
+export interface OperationalMetrics {
+  daysOfInventoryOnHand?: FinancialData[];
+  daysPayablesOutstanding?: FinancialData[];
+  daysSalesOutstanding?: FinancialData[];
+  cashConversionCycle?: FinancialData[];
+  interestCoverageRatio?: FinancialData[];
+  incomeQuality?: FinancialData[]; // Operating Cash Flow to Net Income
+  rdToRevenue?: FinancialData[];
+  capexToOperatingCash?: FinancialData[];
+  capexToDepreciation?: FinancialData[];
+}
+
+export interface ValuationMetrics {
+  grahamNumber?: FinancialData[];
+  freeCashFlowYield?: FinancialData[];
+  pegRatio?: FinancialData[];
+  evToSales?: FinancialData[];
+  evToFcf?: FinancialData[];
+  returnOnInvestedCapital?: FinancialData[];
+  netDebtToEbitda?: FinancialData[];
+}
+
+export interface PerShareMetrics {
+  revenuePerShare?: FinancialData[];
+  netIncomePerShare?: FinancialData[]; // Similar to EPS but might include comprehensive income
+  operatingCashFlowPerShare?: FinancialData[];
+  freeCashFlowPerShare?: FinancialData[];
+  bookValuePerShare?: FinancialData[];
+  tangibleBookValuePerShare?: FinancialData[];
+}
+
 export interface CompanyData {
   company: Company;
   balanceSheet: BalanceSheetData;
@@ -94,6 +125,9 @@ export interface CompanyData {
   dividendYield: number;
   beta: number;
   stockPrices: StockPriceData[];
+  operationalMetrics?: OperationalMetrics;
+  valuationMetrics?: ValuationMetrics;
+  perShareMetrics?: PerShareMetrics;
 }
 
 export interface ChartData {
