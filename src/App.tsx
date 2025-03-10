@@ -3,6 +3,7 @@ import { Search, BarChart4, PieChart, Info, TrendingUp, DollarSign, Percent, Loa
 import CompanySelector from './components/CompanySelector';
 import CompetitorSelector from './components/CompetitorSelector';
 import Overview from './components/Overview';
+import FullOverview from './components/FullOverview';
 import BalanceSheet from './components/BalanceSheet';
 import IncomeStatement from './components/IncomeStatement';
 import CashFlow from './components/CashFlow';
@@ -409,10 +410,17 @@ function App() {
               ) : (
                 <>
                   {activeTab === 'overview' && (
-                    <Overview 
-                      companyData={companyData} 
-                      competitorData={competitorData} 
-                    />
+                    FEATURES.ENABLE_FULL_OVERVIEW ? (
+                      <FullOverview 
+                        companyData={companyData} 
+                        competitorData={competitorData} 
+                      />
+                    ) : (
+                      <Overview 
+                        companyData={companyData} 
+                        competitorData={competitorData} 
+                      />
+                    )
                   )}
                   {activeTab === 'balance-sheet' && (
                     <BalanceSheet 

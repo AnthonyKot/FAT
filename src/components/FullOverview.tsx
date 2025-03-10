@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { CompanyData, FinancialData } from '../types';
 import { formatPercentage } from '../utils/formatters';
 import StockPriceHistory from './StockPriceHistory';
@@ -10,13 +10,17 @@ import KeyFinancialIndicators from './KeyFinancialIndicators';
 import WidgetImportanceRanking from './WidgetImportanceRanking';
 import { useAIRecommendations } from '../utils/useAIRecommendations';
 import { FEATURES } from '../utils/config';
+import { COMPONENT_METRICS_MAP, calculateOverallImportance } from '../utils/metricUtils';
 
-interface OverviewProps {
+interface FullOverviewProps {
   companyData: CompanyData | null;
   competitorData: CompanyData | null;
 }
 
-const FullOverview: React.FC<OverviewProps> = ({ companyData, competitorData }) => {
+/**
+ * Enhanced Overview component that shows top widgets based on AI ranking
+ */
+const FullOverview: React.FC<FullOverviewProps> = ({ companyData, competitorData }) => {
   if (!companyData) return null;
   
   // State for widget ranking debug view
@@ -110,6 +114,34 @@ const FullOverview: React.FC<OverviewProps> = ({ companyData, competitorData }) 
           : []
       };
       
+      // Calculate importance scores for each component/widget
+      if (combined.scoredMetrics.length > 0) {
+        // Calculate scores for each component
+        const componentScores = Object.entries(COMPONENT_METRICS_MAP).map(([key, config]) => {
+          const score = calculateOverallImportance(config.metrics, combined.scoredMetrics);
+          return {
+            id: key,
+            displayName: config.displayName,
+            category: config.category,
+            score
+          };
+        });
+        
+        // Sort by score (highest first)
+        const sortedComponents = [...componentScores].sort((a, b) => b.score - a.score);
+        
+        // Get the top 3 widgets
+        const top3Widgets = sortedComponents.slice(0, 3).map(component => component.id);
+        
+        if (FEATURES.LOG_GEMINI_API) {
+          console.log('Top 3 widgets:', top3Widgets);
+        }
+        
+        // Update state with top widgets
+        setTopWidgets(top3Widgets);
+        setHasRankedWidgets(true);
+      }
+      
       setCombinedRecommendations(combined);
     } catch (error) {
       if (FEATURES.LOG_GEMINI_API) {
@@ -136,6 +168,20 @@ const FullOverview: React.FC<OverviewProps> = ({ companyData, competitorData }) 
   };
   
   // Calculate helpers moved to separate components
+  
+  // Create references for all widget components for scrolling
+  const widgetRefs = {
+    stockPriceChart: useRef<HTMLDivElement>(null),
+    keyPerformanceIndicators: useRef<HTMLDivElement>(null),
+    financialMetrics: useRef<HTMLDivElement>(null),
+    ratioAnalysis: useRef<HTMLDivElement>(null),
+    keyFinancialIndicators: useRef<HTMLDivElement>(null),
+    metricsSection: useRef<HTMLDivElement>(null)
+  };
+  
+  // State for tracking top widgets
+  const [topWidgets, setTopWidgets] = useState<string[]>([]);
+  const [hasRankedWidgets, setHasRankedWidgets] = useState<boolean>(false);
   
   // Calculate year-over-year growth for key metrics with safety checks
   const calculateGrowth = (data: Array<{year: number, value: number}> | undefined): number => {
@@ -170,50 +216,130 @@ const FullOverview: React.FC<OverviewProps> = ({ companyData, competitorData }) 
     const sortedData = [...ratioArray].sort((a, b) => b.year - a.year);
     return sortedData[0].value;
   };
+  
+  // Function to scroll to a widget when clicked
+  const scrollToWidget = (widgetId: string) => {
+    const ref = widgetRefs[widgetId as keyof typeof widgetRefs];
+    if (ref?.current) {
+      ref.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
 
   return (
     <div>
+      {/* Top Widgets Section - shows only after ranking */}
+      {hasRankedWidgets && (
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
+          <h2 className="text-2xl font-semibold text-gray-800 dark:text-white mb-4">
+            Top 3 Most Important Widgets for {companyData.company.name}
+          </h2>
+          <p className="text-gray-600 dark:text-gray-300 mb-4">
+            Based on AI analysis, these widgets are the most relevant for analyzing {companyData.company.name}.
+            Click on a widget to jump to it.
+          </p>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+            {topWidgets.map((widgetId) => {
+              const widget = COMPONENT_METRICS_MAP[widgetId];
+              if (!widget) return null;
+              
+              return (
+                <div 
+                  key={widgetId}
+                  onClick={() => scrollToWidget(widgetId)}
+                  className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-800/30 transition-colors border border-blue-200 dark:border-blue-800"
+                >
+                  <h3 className="font-semibold text-blue-800 dark:text-blue-300 mb-2">
+                    {widget.displayName}
+                  </h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    Category: {widget.category}
+                  </p>
+                  <p className="text-xs text-blue-600 dark:text-blue-400 mt-2">
+                    Click to jump to this widget
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+          
+          <div className="text-sm text-gray-500 dark:text-gray-400">
+            All widgets are still available below. The top widgets are highlighted for your convenience.
+          </div>
+        </div>
+      )}
+      
       {/* Stock Price History */}
-      <StockPriceHistory
-        companyData={companyData}
-        competitorData={competitorData}
-      />
+      <div 
+        ref={widgetRefs.stockPriceChart}
+        className={`${topWidgets.includes('stockPriceChart') ? 'ring-2 ring-blue-500 dark:ring-blue-400 rounded-lg' : ''} mb-6`}
+      >
+        <StockPriceHistory
+          companyData={companyData}
+          competitorData={competitorData}
+        />
+      </div>
 
       {/* Company and Competitor Metrics */}
-      <MetricsSection 
-        companyData={companyData}
-        competitorData={competitorData}
-      />
+      <div 
+        ref={widgetRefs.metricsSection}
+        className={`${topWidgets.includes('metricsSection') ? 'ring-2 ring-blue-500 dark:ring-blue-400 rounded-lg' : ''} mb-6`}
+      >
+        <MetricsSection 
+          companyData={companyData}
+          competitorData={competitorData}
+        />
+      </div>
 
       {/* Key Performance Indicators */}
-      <KeyPerformanceIndicators 
-        companyData={companyData}
-        competitorData={competitorData}
-        revenueGrowth={revenueGrowth}
-        netIncomeGrowth={netIncomeGrowth}
-        epsGrowth={epsGrowth}
-        competitorRevenueGrowth={competitorRevenueGrowth}
-        competitorNetIncomeGrowth={competitorNetIncomeGrowth}
-        competitorEpsGrowth={competitorEpsGrowth}
-      />
+      <div 
+        ref={widgetRefs.keyPerformanceIndicators}
+        className={`${topWidgets.includes('keyPerformanceIndicators') ? 'ring-2 ring-blue-500 dark:ring-blue-400 rounded-lg' : ''} mb-6`}
+      >
+        <KeyPerformanceIndicators 
+          companyData={companyData}
+          competitorData={competitorData}
+          revenueGrowth={revenueGrowth}
+          netIncomeGrowth={netIncomeGrowth}
+          epsGrowth={epsGrowth}
+          competitorRevenueGrowth={competitorRevenueGrowth}
+          competitorNetIncomeGrowth={competitorNetIncomeGrowth}
+          competitorEpsGrowth={competitorEpsGrowth}
+        />
+      </div>
 
       {/* Financial Metrics */}
-      <FinancialMetrics 
-        companyData={companyData}
-        getLatestRatioValue={getLatestRatioValue}
-      />
+      <div 
+        ref={widgetRefs.financialMetrics}
+        className={`${topWidgets.includes('financialMetrics') ? 'ring-2 ring-blue-500 dark:ring-blue-400 rounded-lg' : ''} mb-6`}
+      >
+        <FinancialMetrics 
+          companyData={companyData}
+          getLatestRatioValue={getLatestRatioValue}
+        />
+      </div>
 
       {/* Ratio Analysis Summary */}
-      <RatioAnalysisSummary 
-        companyData={companyData}
-        competitorData={competitorData}
-      />
+      <div 
+        ref={widgetRefs.ratioAnalysis}
+        className={`${topWidgets.includes('ratioAnalysis') ? 'ring-2 ring-blue-500 dark:ring-blue-400 rounded-lg' : ''} mb-6`}
+      >
+        <RatioAnalysisSummary 
+          companyData={companyData}
+          competitorData={competitorData}
+        />
+      </div>
 
       {/* Key Financial Indicators */}
-      <KeyFinancialIndicators 
-        companyData={companyData}
-        competitorData={competitorData}
-      />
+      <div 
+        ref={widgetRefs.keyFinancialIndicators}
+        className={`${topWidgets.includes('keyFinancialIndicators') ? 'ring-2 ring-blue-500 dark:ring-blue-400 rounded-lg' : ''} mb-6`}
+      >
+        <KeyFinancialIndicators 
+          companyData={companyData}
+          competitorData={competitorData}
+        />
+      </div>
       
       {/* Rank Metrics Button & Debug Section */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mt-6">
@@ -276,4 +402,4 @@ const FullOverview: React.FC<OverviewProps> = ({ companyData, competitorData }) 
   );
 };
 
-export default Overview;
+export default FullOverview;

@@ -42,6 +42,8 @@ export const FEATURES = {
   ENABLE_AI_RANKING: true,
   // Enable logging of Gemini API requests and responses
   LOG_GEMINI_API: true,
+  // Enable the new full overview page implementation
+  ENABLE_FULL_OVERVIEW: true,
 };
 
 // Enum Definitions for Metrics
