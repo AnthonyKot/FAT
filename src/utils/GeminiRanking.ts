@@ -210,4 +210,85 @@ class GeminiRanking implements AIRankingService {
         let parsedResponse: GeminiResponseData;
         
         try {
-          const cleanedResponse = responseText.replace(/^
+          // Clean up the response text by removing markdown code blocks and extra whitespace
+          let cleanedResponse = responseText;
+          
+          // First, remove markdown code blocks (```json and ```)
+          cleanedResponse = cleanedResponse.replace(/```json\s*/g, '');
+          cleanedResponse = cleanedResponse.replace(/```\s*/g, '');
+          
+          // Trim whitespace
+          cleanedResponse = cleanedResponse.trim();
+          
+          // Log the cleaned response for debugging
+          if (FEATURES.LOG_GEMINI_API) {
+            console.log('Cleaned response text for parsing:', cleanedResponse);
+          }
+          
+          parsedResponse = JSON.parse(cleanedResponse);
+        } catch (parseError) {
+          console.error('Error parsing Gemini API response:', parseError);
+          
+          // Fallback attempt: Try to extract just the JSON part if the response contains other text
+          try {
+            const jsonMatch = responseText.match(/{[\s\S]*}/);
+            if (jsonMatch) {
+              const extractedJson = jsonMatch[0];
+              if (FEATURES.LOG_GEMINI_API) {
+                console.log('Attempting to parse extracted JSON:', extractedJson);
+              }
+              parsedResponse = JSON.parse(extractedJson);
+            } else {
+              throw new Error('Could not extract valid JSON from response');
+            }
+          } catch (fallbackError) {
+            console.error('Fallback parsing also failed:', fallbackError);
+            throw new Error('Invalid response format from Gemini API');
+          }
+        }
+        
+        // Process the parsed response to extract relevant data
+        if (!parsedResponse.scoredMetrics || !Array.isArray(parsedResponse.scoredMetrics)) {
+          throw new Error('Invalid response format: missing scoredMetrics array');
+        }
+        
+        // Map the scored metrics to our internal format
+        const scoredMetrics: MetricScore[] = parsedResponse.scoredMetrics.map(item => ({
+          metric: item.metric,
+          score: item.score,
+          explanation: item.explanation
+        }));
+        
+        // Extract top metrics (highest scores)
+        const topMetrics = scoredMetrics
+          .sort((a, b) => b.score - a.score)
+          .slice(0, 5)
+          .map(item => item.metric);
+        
+        // Build the complete response
+        const result: AIRecommendationResponse = {
+          scoredMetrics,
+          topMetrics,
+          dashboardAnalysis: parsedResponse.dashboardAnalysis,
+          competitiveInsights: parsedResponse.competitiveInsights,
+          timeSeriesRecommendation: parsedResponse.timeSeriesRecommendation,
+          visualizationRecommendations: parsedResponse.visualizationRecommendations
+        };
+        
+        return result;
+      } catch (error) {
+        console.error('Error in getMetricRecommendations:', error);
+        throw error;
+      } finally {
+        // Clean up resources if needed
+      }
+    } catch (outerError) {
+      console.error('Outer error in getMetricRecommendations:', outerError);
+      throw outerError;
+    } finally {
+      // Clean up any outer resources if needed
+    }
+  }
+}
+
+export default GeminiRanking;

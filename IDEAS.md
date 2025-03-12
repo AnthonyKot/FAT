@@ -1,3 +1,35 @@
+# WHILE WATING
+1. combine KEY indicators and Overview page and make it "expandable" to display data for 5 years
+2. Move chart under "Summary"
+3. Add competitor to "Analysis Summary (AAPL)" and make exandable the same way is #2
+4. display relative price by default
+5. When we do "Ratio Analysis Summary" define threshold +-10% to show yellow result of comparation and add text
+6. "Research & Innovation Metrics" check how it's calculated and show competitor
+7. Bring "Balance Sheet
+
+Income Statement
+
+Cash Flow" to main page and hide
+8. Check how many real data is used on financial health page. Clean up fake data on "PROD"
+9. Actually we don't need some of indicators to make Gemini estimate - just name ("Gemini API Results")
+10. yellow overall assesmtent make no sense. Ask Gemini 
+(Overall assessment: Apple Inc. shows mixed performance compared to Meta Platforms, Inc., with strengths in some areas and weaknesses in others.)
+
+
+ const calculateGrahamNumber = (company: CompanyData): FinancialData[] => {
+      5    const { incomeStatement, balanceSheet, marketCap, currentPrice } = company;
+      6    return incomeStatement.eps.map((epsItem, index) => {
+      7      const bookValuePerShare = balanceSheet.totalEquity[index]?.value / 
+      8                               (marketCap / currentPrice); // Rough estimate of shares outstanding
+      9      return {
+     10        year: epsItem.year,
+     11        quarter: epsItem.quarter,
+     12        value: Math.sqrt(15 * epsItem.value * 1.5 * bookValuePerShare)
+     13      };
+     14    });
+     15  };
+     
+
 	•	AI-Driven Similarity and Recommendations
 → Matches our AI-Driven Enhancements stories (integrating AI sorting, badges, and tooltips).
 	•	Actionable Insights & Highlights Upon Stock Selection

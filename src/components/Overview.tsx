@@ -7,9 +7,11 @@ import KeyPerformanceIndicators from './KeyPerformanceIndicators';
 import FinancialMetrics from './FinancialMetrics';
 import RatioAnalysisSummary from './RatioAnalysisSummary';
 import KeyFinancialIndicators from './KeyFinancialIndicators';
+import ResearchInnovation from './ResearchInnovation';
 import WidgetImportanceRanking from './WidgetImportanceRanking';
 import { useAIRecommendations } from '../utils/useAIRecommendations';
 import { FEATURES } from '../utils/config';
+import { COMPONENT_METRICS_MAP, calculateOverallImportance } from '../utils/metricUtils';
 
 interface OverviewProps {
   companyData: CompanyData | null;
@@ -171,21 +173,46 @@ const Overview: React.FC<OverviewProps> = ({ companyData, competitorData }) => {
     return sortedData[0].value;
   };
 
-  return (
-    <div>
-      {/* Stock Price History */}
+  // Function to determine if a component should be shown in top section
+  const isTopWidget = (componentId: string): boolean => {
+    if (!recommendations || !recommendations.scoredMetrics) {
+      return false;
+    }
+
+    // Calculate scores for each component
+    const componentScores = Object.entries(COMPONENT_METRICS_MAP).map(([key, config]) => {
+      const score = calculateOverallImportance(config.metrics, recommendations.scoredMetrics);
+      return {
+        id: key,
+        score
+      };
+    });
+    
+    // Sort by score (highest first)
+    const sortedComponents = [...componentScores].sort((a, b) => b.score - a.score);
+    
+    // Get the top 3 widgets
+    const top3Widgets = sortedComponents.slice(0, 3).map(component => component.id);
+    
+    return top3Widgets.includes(componentId);
+  };
+  
+  // Check if Research & Innovation should be shown
+  const showResearchInnovation = !recommendations || recommendations.scoredMetrics?.some(metric => 
+    metric.metric.toString().includes('Research') ||
+    metric.metric.toString().includes('RD_') ||
+    metric.metric.toString().includes('CAPEX_')
+  );
+
+  // Components that could be in top section if recommended
+  const widgetComponents = {
+    stockPriceChart: (
       <StockPriceHistory
         companyData={companyData}
         competitorData={competitorData}
       />
-
-      {/* Company and Competitor Metrics */}
-      <MetricsSection 
-        companyData={companyData}
-        competitorData={competitorData}
-      />
-
-      {/* Key Performance Indicators */}
+    ),
+    keyPerformanceIndicators: (
       <KeyPerformanceIndicators 
         companyData={companyData}
         competitorData={competitorData}
@@ -196,24 +223,80 @@ const Overview: React.FC<OverviewProps> = ({ companyData, competitorData }) => {
         competitorNetIncomeGrowth={competitorNetIncomeGrowth}
         competitorEpsGrowth={competitorEpsGrowth}
       />
-
-      {/* Financial Metrics */}
+    ),
+    financialMetrics: (
       <FinancialMetrics 
         companyData={companyData}
         getLatestRatioValue={getLatestRatioValue}
       />
-
-      {/* Ratio Analysis Summary */}
+    ),
+    ratioAnalysis: (
       <RatioAnalysisSummary 
         companyData={companyData}
         competitorData={competitorData}
       />
-
-      {/* Key Financial Indicators */}
+    ),
+    keyFinancialIndicators: (
       <KeyFinancialIndicators 
         companyData={companyData}
         competitorData={competitorData}
       />
+    ),
+    researchMetrics: showResearchInnovation ? (
+      <ResearchInnovation
+        companyData={companyData}
+        getLatestRatioValue={getLatestRatioValue}
+        showInOverview={true}
+      />
+    ) : null
+  };
+
+  // TopWidgets will only show if recommendations exist and we have scores
+  const topWidgetsToShow = recommendations?.scoredMetrics ? Object.keys(widgetComponents)
+    .filter(id => isTopWidget(id))
+    .filter(id => id !== 'researchMetrics' || showResearchInnovation) // Only include research if flagged to show
+    .slice(0, 3) : [];
+    
+  // Any widget in the top section shouldn't be shown again in the main section  
+  const regularWidgetsToShow = Object.keys(widgetComponents)
+    .filter(id => !topWidgetsToShow.includes(id))
+    .filter(id => id !== 'researchMetrics' || showResearchInnovation); // Only include research if flagged to show
+  
+  return (
+    <div>
+      {/* Top Widgets Section - shows only after ranking */}
+      {topWidgetsToShow.length > 0 && (
+        <div className="mb-8">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 mb-6">
+            <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-2">
+              Most Important Widgets for {companyData.company.name}
+            </h2>
+            <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">
+              Based on AI analysis, these widgets are the most relevant for this company.
+            </p>
+          </div>
+          
+          {/* Render top widgets */}
+          {topWidgetsToShow.map(id => (
+            <div key={id} className="mb-6 ring-2 ring-blue-500 dark:ring-blue-400 rounded-lg">
+              {widgetComponents[id as keyof typeof widgetComponents]}
+            </div>
+          ))}
+        </div>
+      )}
+      
+      {/* Company and Competitor Metrics - Always at top */}
+      <MetricsSection 
+        companyData={companyData}
+        competitorData={competitorData}
+      />
+      
+      {/* Render remaining widgets */}
+      {regularWidgetsToShow.map(id => (
+        <div key={id} className="mb-6">
+          {widgetComponents[id as keyof typeof widgetComponents]}
+        </div>
+      ))}
       
       {/* Rank Metrics Button & Debug Section */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mt-6">

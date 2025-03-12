@@ -566,6 +566,56 @@ export const sampleIncomeStatementResponse: IncomeStatementResponse[] = [
  * @param symbol The company symbol
  * @returns Sample response data for the specified endpoint and symbol
  */
+// Historical Price Response Interface
+export interface HistoricalPriceResponse {
+  symbol: string;
+  historical: {
+    date: string;
+    open: number;
+    high: number;
+    low: number;
+    close: number;
+    volume: number;
+    adjClose?: number;
+    unadjustedVolume?: number;
+    change?: number;
+    changePercent?: number;
+    vwap?: number;
+    label?: string;
+    changeOverTime?: number;
+  }[];
+}
+
+export const sampleHistoricalPriceResponse: HistoricalPriceResponse = {
+  symbol: "AAPL",
+  historical: [
+    {
+      date: "2024-09-28",
+      open: 236.95,
+      high: 242.08,
+      low: 234.51,
+      close: 241.395,
+      volume: 56833360
+    },
+    {
+      date: "2024-09-27",
+      open: 237.3,
+      high: 239.5,
+      low: 235.02,
+      close: 237.3,
+      volume: 48217560
+    },
+    {
+      date: "2024-09-26",
+      open: 234.21,
+      high: 237.83,
+      low: 233.5,
+      close: 237.41,
+      volume: 43126600
+    }
+  ]
+};
+
 export const mockApiResponse = (endpoint: string, symbol: string = 'AAPL') => {
   switch (endpoint) {
     case 'profile':
@@ -580,6 +630,8 @@ export const mockApiResponse = (endpoint: string, symbol: string = 'AAPL') => {
       return sampleKeyMetricsResponse;
     case 'quote':
       return sampleStockQuoteResponse;
+    case 'historical-price':
+      return sampleHistoricalPriceResponse;
     default:
       throw new Error(`Unknown endpoint: ${endpoint}`);
   }

@@ -219,13 +219,13 @@ const RatioAnalysis: React.FC<RatioAnalysisProps> = ({ companyData, competitorDa
               borderColor: 'rgb(16, 185, 129)',
               borderWidth: 2
             },
-            {
+            ...(companyData.ratios.quickRatio && companyData.ratios.quickRatio.length > 0 ? [{
               label: `${companyData.company.name} - Quick Ratio`,
               data: riskYearOrder.map(idx => companyData.ratios.quickRatio[idx].value),
               backgroundColor: 'rgba(245, 158, 11, 0.5)',
               borderColor: 'rgb(245, 158, 11)',
               borderWidth: 2
-            },
+            }] : []),
             ...(competitorData ? [
               {
                 label: `${competitorData.company.name} - Debt to Equity`,
@@ -336,14 +336,23 @@ const RatioAnalysis: React.FC<RatioAnalysisProps> = ({ companyData, competitorDa
           ]
         };
       case 'risk':
+        const riskRatios = [
+          { name: 'Debt to Equity', description: 'Compares a company\'s total debt to its shareholder equity.' },
+          { name: 'Current Ratio', description: 'Measures a company\'s ability to pay short-term obligations.' }
+        ];
+        
+        // Only include Quick Ratio in explanation if data is available
+        if (companyData.ratios.quickRatio && companyData.ratios.quickRatio.length > 0) {
+          riskRatios.push({ 
+            name: 'Quick Ratio', 
+            description: 'Similar to current ratio but excludes inventory, showing ability to pay short-term obligations with liquid assets.' 
+          });
+        }
+        
         return {
           title: 'Risk & Solvency Ratios',
           description: 'Risk ratios evaluate how sustainable a company\'s operations are in terms of debt and liquidity.',
-          ratios: [
-            { name: 'Debt to Equity', description: 'Compares a company\'s total debt to its shareholder equity.' },
-            { name: 'Current Ratio', description: 'Measures a company\'s ability to pay short-term obligations.' },
-            { name: 'Quick Ratio', description: 'Similar to current ratio but excludes inventory, showing ability to pay short-term obligations with liquid assets.' }
-          ]
+          ratios: riskRatios
         };
       case 'efficiency':
         return {
@@ -454,7 +463,7 @@ const RatioAnalysis: React.FC<RatioAnalysisProps> = ({ companyData, competitorDa
           }
         ];
       case 'risk':
-        return [
+        const riskRatios = [
           {
             name: 'Debt to Equity',
             company: companyData.ratios.debtToEquity[0].value.toFixed(2),
@@ -470,16 +479,23 @@ const RatioAnalysis: React.FC<RatioAnalysisProps> = ({ companyData, competitorDa
             better: competitorData ? 
               (companyData.ratios.currentRatio[0].value > 
                competitorData.ratios.currentRatio[0].value) : false
-          },
-          {
-            name: 'Quick Ratio',
-            company: companyData.ratios.quickRatio[0].value.toFixed(2),
-            competitor: competitorData ? competitorData.ratios.quickRatio[0].value.toFixed(2) : '-',
-            better: competitorData ? 
-              (companyData.ratios.quickRatio[0].value > 
-               competitorData.ratios.quickRatio[0].value) : false
           }
         ];
+        
+        // Only add Quick Ratio if data is available
+        if (companyData.ratios.quickRatio && companyData.ratios.quickRatio.length > 0) {
+          riskRatios.push({
+            name: 'Quick Ratio',
+            company: companyData.ratios.quickRatio[0].value.toFixed(2),
+            competitor: competitorData && competitorData.ratios.quickRatio && competitorData.ratios.quickRatio.length > 0 ? 
+              competitorData.ratios.quickRatio[0].value.toFixed(2) : '-',
+            better: competitorData && competitorData.ratios.quickRatio && competitorData.ratios.quickRatio.length > 0 ? 
+              (companyData.ratios.quickRatio[0].value > 
+               competitorData.ratios.quickRatio[0].value) : false
+          });
+        }
+        
+        return riskRatios;
       case 'efficiency':
         return [
           {

@@ -59,10 +59,10 @@ const FinancialRatioComparison: React.FC<FinancialRatioComparisonProps> = ({ com
       return sortedData[0]?.value ?? 0;
     };
     
+    // Only include Debt to Equity and Current Ratio, removing Quick Ratio entirely
     const ratios = [
       { key: 'Debt to Equity', value1: getLatestValue(companyData.ratios.debtToEquity), value2: competitorData ? getLatestValue(competitorData.ratios.debtToEquity) : 0, termKey: 'debtToEquity' },
-      { key: 'Current Ratio', value1: getLatestValue(companyData.ratios.currentRatio), value2: competitorData ? getLatestValue(competitorData.ratios.currentRatio) : 0, termKey: 'currentRatio' },
-      { key: 'Quick Ratio', value1: getLatestValue(companyData.ratios.quickRatio), value2: competitorData ? getLatestValue(competitorData.ratios.quickRatio) : 0, termKey: 'quickRatio' }
+      { key: 'Current Ratio', value1: getLatestValue(companyData.ratios.currentRatio), value2: competitorData ? getLatestValue(competitorData.ratios.currentRatio) : 0, termKey: 'currentRatio' }
     ];
     
     return {
@@ -127,7 +127,7 @@ const FinancialRatioComparison: React.FC<FinancialRatioComparisonProps> = ({ com
             <ChartTooltip 
               title="Financial Health Ratios" 
               termKey="debtToEquity" 
-              customDefinition="These ratios measure a company's leverage and ability to meet its financial obligations."
+              customDefinition="These ratios measure a company's leverage (Debt to Equity) and liquidity (Current Ratio)."
             />
           </div>
           <FinancialChart
@@ -135,7 +135,7 @@ const FinancialRatioComparison: React.FC<FinancialRatioComparisonProps> = ({ com
             chartType="bar"
             title="Financial Health Ratios"
             termKey="debtToEquity"
-            description="Debt to Equity: Lower is better. Current & Quick Ratios: Higher values indicate better liquidity and ability to pay short-term debts."
+            description="Debt to Equity: Lower is better. Current Ratio: Higher values indicate better liquidity and ability to pay short-term debts."
           />
         </div>
       </div>

@@ -12,7 +12,7 @@ const RatioAnalysisSummary: React.FC<RatioAnalysisSummaryProps> = ({
   competitorData 
 }) => {
   return (
-    <div className="bg-white dark:bg-dark-surface rounded-lg shadow dark:shadow-gray-800 p-6">
+    <div id="ratioAnalysis" className="bg-white dark:bg-dark-surface rounded-lg shadow dark:shadow-gray-800 p-6">
       <h2 className="text-lg font-semibold text-gray-800 dark:text-dark-text-primary mb-4">Ratio Analysis Summary</h2>
       <div className="bg-gray-50 dark:bg-gray-800/30 rounded-lg p-4 sm:p-5 border border-gray-200 dark:border-gray-700">
         <div className="prose dark:prose-invert max-w-none text-sm text-gray-600 dark:text-gray-300">

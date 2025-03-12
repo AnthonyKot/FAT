@@ -1,9 +1,5 @@
 import React from 'react';
 import { CompanyData, FinancialData } from '../types';
-import { formatLargeNumber } from '../utils/formatters';
-
-import React from 'react';
-import { CompanyData, FinancialData } from '../types';
 import { formatLargeNumber, formatPercentage } from '../utils/formatters';
 import Sparkline from './Sparkline';
 

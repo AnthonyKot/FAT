@@ -75,7 +75,9 @@ const WidgetImportanceRanking: React.FC<WidgetImportanceRankingProps> = ({
             {sortedComponents.map((component) => (
               <tr key={component.id}>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
-                  {component.displayName}
+                  <a href={`#${component.id}`} className="hover:text-blue-600 dark:hover:text-blue-400 hover:underline">
+                    {component.displayName}
+                  </a>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                   {component.category}

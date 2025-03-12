@@ -1,26 +1,296 @@
 import FinancialModelingPrepAPI from './FinancialModelingPrepAPI';
 import { API_CONFIG, FEATURES } from './config';
-import {
-  CompanyProfileResponse,
-  BalanceSheetResponse,
-  IncomeStatementResponse,
-  CashFlowResponse,
-  KeyMetricsResponse,
-  StockQuoteResponse,
-  HistoricalPriceResponse
-} from '../data/sampleApiResponse';
-import { FEATURES } from './config';
-
-// Import persistent cache
+// Import types directly from the types.ts file instead
 import { cachedFetch } from './cacheUtils';
 
-export { HistoricalPriceResponse }
-export { CompanyProfileResponse }
-export { BalanceSheetResponse }
-export { IncomeStatementResponse }
-export { CashFlowResponse }
-export { KeyMetricsResponse }
-export { StockQuoteResponse }
+// Define our response types here to avoid circular dependencies
+export interface CompanyProfileResponse {
+  symbol: string;
+  price: number;
+  beta: number;
+  volAvg: number;
+  mktCap: number;
+  lastDiv: number;
+  range: string;
+  changes: number;
+  companyName: string;
+  currency: string;
+  cik: string;
+  isin: string;
+  cusip: string;
+  exchange: string;
+  exchangeShortName: string;
+  industry: string;
+  website: string;
+  description: string;
+  ceo: string;
+  sector: string;
+  country: string;
+  fullTimeEmployees: string;
+  phone: string;
+  address: string;
+  city: string;
+  state: string;
+  zip: string;
+  dcfDiff: number;
+  dcf: number;
+  image: string;
+  ipoDate: string;
+  defaultImage: boolean;
+  isEtf: boolean;
+  isActivelyTrading: boolean;
+  isAdr: boolean;
+  isFund: boolean;
+}
+
+export interface BalanceSheetResponse {
+  date: string;
+  symbol: string;
+  reportedCurrency: string;
+  cik: string;
+  fillingDate: string;
+  acceptedDate: string;
+  calendarYear: string;
+  period: string;
+  cashAndCashEquivalents: number;
+  shortTermInvestments: number;
+  cashAndShortTermInvestments: number;
+  netReceivables: number;
+  inventory: number;
+  otherCurrentAssets: number;
+  totalCurrentAssets: number;
+  propertyPlantEquipmentNet: number;
+  goodwill: number;
+  intangibleAssets: number;
+  goodwillAndIntangibleAssets: number;
+  longTermInvestments: number;
+  taxAssets: number;
+  otherNonCurrentAssets: number;
+  totalNonCurrentAssets: number;
+  otherAssets: number;
+  totalAssets: number;
+  accountPayables: number;
+  shortTermDebt: number;
+  taxPayables: number;
+  deferredRevenue: number;
+  otherCurrentLiabilities: number;
+  totalCurrentLiabilities: number;
+  longTermDebt: number;
+  deferredRevenueNonCurrent: number;
+  deferredTaxLiabilitiesNonCurrent: number;
+  otherNonCurrentLiabilities: number;
+  totalNonCurrentLiabilities: number;
+  otherLiabilities: number;
+  capitalLeaseObligations: number;
+  totalLiabilities: number;
+  preferredStock: number;
+  commonStock: number;
+  retainedEarnings: number;
+  accumulatedOtherComprehensiveIncomeLoss: number;
+  othertotalStockholdersEquity: number;
+  totalStockholdersEquity: number;
+  totalEquity: number;
+  totalLiabilitiesAndStockholdersEquity: number;
+  minorityInterest: number;
+  totalLiabilitiesAndTotalEquity: number;
+  totalInvestments: number;
+  totalDebt: number;
+  netDebt: number;
+  link: string;
+  finalLink: string;
+}
+
+export interface IncomeStatementResponse {
+  date: string;
+  symbol: string;
+  reportedCurrency: string;
+  cik: string;
+  fillingDate: string;
+  acceptedDate: string;
+  calendarYear: string;
+  period: string;
+  revenue: number;
+  costOfRevenue: number;
+  grossProfit: number;
+  grossProfitRatio: number;
+  researchAndDevelopmentExpenses: number;
+  generalAndAdministrativeExpenses: number;
+  sellingAndMarketingExpenses: number;
+  sellingGeneralAndAdministrativeExpenses: number;
+  otherExpenses: number;
+  operatingExpenses: number;
+  costAndExpenses: number;
+  interestIncome: number;
+  interestExpense: number;
+  depreciationAndAmortization: number;
+  ebitda: number;
+  ebitdaratio: number;
+  operatingIncome: number;
+  operatingIncomeRatio: number;
+  totalOtherIncomeExpensesNet: number;
+  incomeBeforeTax: number;
+  incomeBeforeTaxRatio: number;
+  incomeTaxExpense: number;
+  netIncome: number;
+  netIncomeRatio: number;
+  eps: number;
+  epsdiluted: number;
+  weightedAverageShsOut: number;
+  weightedAverageShsOutDil: number;
+  link: string;
+  finalLink: string;
+}
+
+export interface CashFlowResponse {
+  date: string;
+  symbol: string;
+  reportedCurrency: string;
+  cik: string;
+  fillingDate: string;
+  acceptedDate: string;
+  calendarYear: string;
+  period: string;
+  netIncome: number;
+  depreciationAndAmortization: number;
+  deferredIncomeTax: number;
+  stockBasedCompensation: number;
+  changeInWorkingCapital: number;
+  accountsReceivables: number;
+  inventory: number;
+  accountsPayables: number;
+  otherWorkingCapital: number;
+  otherNonCashItems: number;
+  netCashProvidedByOperatingActivities: number;
+  investmentsInPropertyPlantAndEquipment: number;
+  acquisitionsNet: number;
+  purchasesOfInvestments: number;
+  salesMaturitiesOfInvestments: number;
+  otherInvestingActivites: number;
+  netCashUsedForInvestingActivites: number;
+  debtRepayment: number;
+  commonStockIssued: number;
+  commonStockRepurchased: number;
+  dividendsPaid: number;
+  otherFinancingActivites: number;
+  netCashUsedProvidedByFinancingActivities: number;
+  effectOfForexChangesOnCash: number;
+  netChangeInCash: number;
+  cashAtEndOfPeriod: number;
+  cashAtBeginningOfPeriod: number;
+  operatingCashFlow: number;
+  capitalExpenditure: number;
+  freeCashFlow: number;
+  link: string;
+  finalLink: string;
+}
+
+export interface KeyMetricsResponse {
+  symbol: string;
+  date: string;
+  calendarYear: string;
+  period: string;
+  revenuePerShare: number;
+  netIncomePerShare: number;
+  operatingCashFlowPerShare: number;
+  freeCashFlowPerShare: number;
+  cashPerShare: number;
+  bookValuePerShare: number;
+  tangibleBookValuePerShare: number;
+  shareholdersEquityPerShare: number;
+  interestDebtPerShare: number;
+  marketCap: number;
+  enterpriseValue: number;
+  peRatio: number;
+  priceToSalesRatio: number;
+  pocfratio: number;
+  pfcfRatio: number;
+  pbRatio: number;
+  ptbRatio: number;
+  evToSales: number;
+  enterpriseValueOverEBITDA: number;
+  evToOperatingCashFlow: number;
+  evToFreeCashFlow: number;
+  earningsYield: number;
+  freeCashFlowYield: number;
+  debtToEquity: number;
+  debtToAssets: number;
+  netDebtToEBITDA: number;
+  currentRatio: number;
+  interestCoverage: number;
+  incomeQuality: number;
+  dividendYield: number;
+  payoutRatio: number;
+  salesGeneralAndAdministrativeToRevenue: number;
+  researchAndDdevelopementToRevenue: number;
+  intangiblesToTotalAssets: number;
+  capexToOperatingCashFlow: number;
+  capexToRevenue: number;
+  capexToDepreciation: number;
+  stockBasedCompensationToRevenue: number;
+  grahamNumber: number;
+  roic: number;
+  returnOnTangibleAssets: number;
+  grahamNetNet: number;
+  workingCapital: number;
+  tangibleAssetValue: number;
+  netCurrentAssetValue: number;
+  investedCapital: number;
+  averageReceivables: number;
+  averagePayables: number;
+  averageInventory: number;
+  daysSalesOutstanding: number;
+  daysPayablesOutstanding: number;
+  daysOfInventoryOnHand: number;
+  receivablesTurnover: number;
+  payablesTurnover: number;
+  inventoryTurnover: number;
+  roe: number;
+  capexPerShare: number;
+}
+
+export interface StockQuoteResponse {
+  symbol: string;
+  name: string;
+  price: number;
+  changesPercentage: number;
+  change: number;
+  dayLow: number;
+  dayHigh: number;
+  yearHigh: number;
+  yearLow: number;
+  marketCap: number;
+  priceAvg50: number;
+  priceAvg200: number;
+  exchange: string;
+  volume: number;
+  avgVolume: number;
+  open: number;
+  previousClose: number;
+  eps: number;
+  pe: number;
+  earningsAnnouncement: string;
+  sharesOutstanding: number;
+  timestamp: number;
+}
+
+export interface HistoricalPriceResponse {
+  symbol: string;
+  historical: {
+    date: string;
+    open: number;
+    high: number;
+    low: number;
+    close: number;
+    volume: number;
+    adjClose?: number;
+    unadjustedVolume?: number;
+    change?: number;
+    changePercent?: number;
+    vwap?: number;
+    label?: string;
+    changeOverTime?: number;
+  }[];
+}
 
 const fmpAPI = new FinancialModelingPrepAPI();
 
@@ -42,6 +312,9 @@ async function getMockData(endpoint: string): Promise<any> {
     // Map some special endpoints to their appropriate mock data type
     
     console.log(`Getting mock data for endpoint: ${mockEndpoint}`);
+    
+    // Map endpoint to mock data type
+    const mockDataType = MOCK_DATA_MAP[mockEndpoint] || mockEndpoint;
     
     // Get data from the correct file
     const mockData = mockApiResponse(mockDataType);
@@ -78,14 +351,14 @@ async function apiRequest<T>(endpoint: string, params: Record<string, string> = 
     return getMockData(mockEndpoint) as Promise<T>;
   }
   
-  // If API_KEY is empty, throw an error
-  if (!API_KEY) {
+  // If API_CONFIG.API_KEY is empty, throw an error
+  if (!API_CONFIG.API_KEY) {
     throw new Error('API key is not configured. Please set your FinancialModelingPrep API key in config.ts.');
   }
 
   // Create cache key from the endpoint and params
-  const queryString = new URLSearchParams({ ...params, apikey: API_KEY }).toString();
-  const url = `${API_BASE_URL}${endpoint}?${queryString}`;
+  const queryString = new URLSearchParams({ ...params, apikey: API_CONFIG.API_KEY }).toString();
+  const url = `${API_CONFIG.API_BASE_URL}${endpoint}?${queryString}`;
   const cacheKey = `${endpoint}_${JSON.stringify(params)}`;
 
   // Use the persistent cache utility

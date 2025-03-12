@@ -1,18 +1,5 @@
 // Data Adapter
 // This utility transforms API responses from FinancialModelingPrep into our application's data model
-// Calculate Graham Number
-const calculateGrahamNumber = (company: CompanyData): FinancialData[] => {
-  const { incomeStatement, balanceSheet, marketCap, currentPrice } = company;
-  return incomeStatement.eps.map((epsItem, index) => {
-    const bookValuePerShare = balanceSheet.totalEquity[index]?.value / 
-                             (marketCap / currentPrice); // Rough estimate of shares outstanding
-    return {
-      year: epsItem.year,
-      quarter: epsItem.quarter,
-      value: Math.sqrt(15 * epsItem.value * 1.5 * bookValuePerShare)
-    };
-  });
-};
 import { CompanyData, FinancialData, OperationalMetrics, PerShareMetrics, ValuationMetrics } from '../types';
 import { 
   CompanyProfileResponse,
@@ -30,22 +17,6 @@ import {
   getKeyMetrics,
   getStockQuote
 } from './apiService';
-import {
-  CompanyProfileResponse,
-  BalanceSheetResponse,
-  IncomeStatementResponse,
-  CashFlowResponse,
-  KeyMetricsResponse,
-  StockQuoteResponse
-} from '../data/sampleApiResponse';
-import {
-  CompanyProfileResponse,
-  BalanceSheetResponse,
-  IncomeStatementResponse,
-  CashFlowResponse,
-  KeyMetricsResponse,
-  StockQuoteResponse
-} from '../data/sampleApiResponse';
 
 /**
  * Calculates year-over-year growth for financial data
@@ -106,17 +77,24 @@ function calculateChange(data: { year: number; value: number }[]): { year: numbe
 export async function fetchCompanyData(ticker: string): Promise<CompanyData> {
   try {
     // Fetch all required data in parallel
-    ] = await Promise.all([
-      companyProfileData,
+    const [
+      companyProfile,
       incomeStatementData,
       balanceSheetData,
       cashFlowData,
       keyMetricsData,
       quoteData
+    ] = await Promise.all([
+      getCompanyProfile(ticker),
+      getIncomeStatement(ticker),
+      getBalanceSheet(ticker),
+      getCashFlowStatement(ticker),
+      getKeyMetrics(ticker),
+      getStockQuote(ticker)
     ]);
 
     // Ensure we have valid data
-    if (!profileData || !incomeStatementData || !balanceSheetData || !cashFlowData || !keyMetricsData || !quoteData) {
+    if (!companyProfile || !incomeStatementData || !balanceSheetData || !cashFlowData || !keyMetricsData || !quoteData) {
       throw new Error(`Incomplete data for ticker: ${ticker}`);
     }
 
@@ -396,18 +374,15 @@ export async function fetchCompanyData(ticker: string): Promise<CompanyData> {
 export function calculateOperationalMetrics(company: CompanyData): OperationalMetrics {
   const { balanceSheet, incomeStatement, cashFlow } = company;
   
-// Calculate Days of Inventory On Hand
-const calculateDaysOfInventoryOnHand = (balanceSheet: BalanceSheetData, incomeStatement: IncomeStatementData): FinancialData[] => {
+  // Calculate Days of Inventory On Hand
+  const daysOfInventoryOnHand = balanceSheet.inventory.map((item, index) => {
+    const costOfRevenue = incomeStatement.costOfRevenue[index]?.value || 1;
     const daysInYear = 365;
-    return balanceSheet.inventory.map((item, index) => {
-      const costOfRevenue = incomeStatement.costOfRevenue[index]?.value || 1;
-      return {
-        year: item.year,
-        quarter: item.quarter,
-        value: (item.value / (costOfRevenue / daysInYear))
-      };
-    });
-  }
+    return {
+      year: item.year,
+      value: (item.value / (costOfRevenue / daysInYear))
+    };
+  });
   
   // Calculate Days Payables Outstanding
   const daysPayablesOutstanding = balanceSheet.accountsPayable.map((item, index) => {
@@ -415,7 +390,6 @@ const calculateDaysOfInventoryOnHand = (balanceSheet: BalanceSheetData, incomeSt
     const daysInYear = 365;
     return {
       year: item.year,
-      quarter: item.quarter,
       value: (item.value / (costOfRevenue / daysInYear))
     };
   });
@@ -426,17 +400,17 @@ const calculateDaysOfInventoryOnHand = (balanceSheet: BalanceSheetData, incomeSt
     const daysInYear = 365;
     return {
       year: item.year,
-      quarter: item.quarter,
       value: (item.value / (revenue / daysInYear))
     };
   });
   
   // Calculate Cash Conversion Cycle
   const cashConversionCycle = daysOfInventoryOnHand.map((item, index) => {
+    const dso = daysSalesOutstanding[index]?.value || 0;
+    const dpo = daysPayablesOutstanding[index]?.value || 0;
     return {
       year: item.year,
-      quarter: item.quarter,
-      value: item.value + daysSalesOutstanding[index].value - daysPayablesOutstanding[index].value
+      value: item.value + dso - dpo
     };
   });
   
@@ -445,7 +419,6 @@ const calculateDaysOfInventoryOnHand = (balanceSheet: BalanceSheetData, incomeSt
     const netIncome = incomeStatement.netIncome[index]?.value || 1;
     return {
       year: item.year,
-      quarter: item.quarter,
       value: item.value / netIncome
     };
   });
@@ -456,7 +429,6 @@ const calculateDaysOfInventoryOnHand = (balanceSheet: BalanceSheetData, incomeSt
     // Use absolute value since CapEx is negative
     return {
       year: item.year,
-      quarter: item.quarter,
       value: (Math.abs(item.value) / opCashFlow) * 100 // As percentage
     };
   });
@@ -468,7 +440,6 @@ const calculateDaysOfInventoryOnHand = (balanceSheet: BalanceSheetData, incomeSt
     const estimatedRD = item.value * 0.15; // Rough estimate that 15% of OpEx is R&D
     return {
       year: item.year,
-      quarter: item.quarter,
       value: (estimatedRD / revenue) * 100 // As percentage
     };
   });
@@ -494,7 +465,6 @@ export function calculateValuationMetrics(company: CompanyData): ValuationMetric
                              (marketCap / company.currentPrice); // Rough estimate of shares outstanding
     return {
       year: epsItem.year,
-      quarter: epsItem.quarter,
       value: Math.sqrt(15 * epsItem.value * 1.5 * bookValuePerShare)
     };
   });
@@ -503,7 +473,6 @@ export function calculateValuationMetrics(company: CompanyData): ValuationMetric
   const freeCashFlowYield = cashFlow.freeCashFlow.map((item) => {
     return {
       year: item.year,
-      quarter: item.quarter,
       value: (item.value / marketCap) * 100 // As percentage
     };
   });
@@ -516,7 +485,6 @@ export function calculateValuationMetrics(company: CompanyData): ValuationMetric
     
     return {
       year: item.year,
-      quarter: item.quarter,
       value: growth > 0 ? pe / (growth * 100) : 0 // Convert growth to percentage
     };
   });
@@ -530,7 +498,6 @@ export function calculateValuationMetrics(company: CompanyData): ValuationMetric
     
     return {
       year: item.year,
-      quarter: item.quarter,
       value: enterpriseValue / item.value
     };
   });
@@ -544,7 +511,6 @@ export function calculateValuationMetrics(company: CompanyData): ValuationMetric
     
     return {
       year: item.year,
-      quarter: item.quarter,
       value: item.value !== 0 ? enterpriseValue / item.value : 0
     };
   });
@@ -558,7 +524,6 @@ export function calculateValuationMetrics(company: CompanyData): ValuationMetric
     
     return {
       year: item.year,
-      quarter: item.quarter,
       value: item.value !== 0 ? netDebt / item.value : 0
     };
   });
@@ -572,7 +537,6 @@ export function calculateValuationMetrics(company: CompanyData): ValuationMetric
     
     return {
       year: item.year,
-      quarter: item.quarter,
       value: (item.value / investedCapital) * 100 // As percentage
     };
   });
@@ -599,7 +563,6 @@ export function calculatePerShareMetrics(company: CompanyData): PerShareMetrics 
   const revenuePerShare = incomeStatement.revenue.map((item) => {
     return {
       year: item.year,
-      quarter: item.quarter,
       value: item.value / sharesOutstanding
     };
   });
@@ -608,7 +571,6 @@ export function calculatePerShareMetrics(company: CompanyData): PerShareMetrics 
   const operatingCashFlowPerShare = cashFlow.operatingCashFlow.map((item) => {
     return {
       year: item.year,
-      quarter: item.quarter,
       value: item.value / sharesOutstanding
     };
   });
@@ -617,7 +579,6 @@ export function calculatePerShareMetrics(company: CompanyData): PerShareMetrics 
   const freeCashFlowPerShare = cashFlow.freeCashFlow.map((item) => {
     return {
       year: item.year,
-      quarter: item.quarter,
       value: item.value / sharesOutstanding
     };
   });
@@ -626,7 +587,6 @@ export function calculatePerShareMetrics(company: CompanyData): PerShareMetrics 
   const bookValuePerShare = balanceSheet.totalEquity.map((item) => {
     return {
       year: item.year,
-      quarter: item.quarter,
       value: item.value / sharesOutstanding
     };
   });
@@ -639,7 +599,6 @@ export function calculatePerShareMetrics(company: CompanyData): PerShareMetrics 
     
     return {
       year: item.year,
-      quarter: item.quarter,
       value: tangibleBookValue / sharesOutstanding
     };
   });

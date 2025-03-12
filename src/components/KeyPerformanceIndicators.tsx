@@ -31,7 +31,7 @@ const KeyPerformanceIndicators: React.FC<KeyPerformanceIndicatorsProps> = ({
   };
 
   return (
-    <div className="bg-white dark:bg-dark-surface rounded-lg shadow dark:shadow-gray-800 p-4 sm:p-6 mb-6 sm:mb-8">
+    <div id="keyPerformanceIndicators" className="bg-white dark:bg-dark-surface rounded-lg shadow dark:shadow-gray-800 p-4 sm:p-6 mb-6 sm:mb-8">
       <h2 className="text-base sm:text-lg font-semibold text-gray-800 dark:text-dark-text-primary mb-3 sm:mb-4">
         Key Performance Indicators ({companyData.company.symbol})
       </h2>

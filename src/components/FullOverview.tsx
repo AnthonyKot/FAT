@@ -7,6 +7,7 @@ import KeyPerformanceIndicators from './KeyPerformanceIndicators';
 import FinancialMetrics from './FinancialMetrics';
 import RatioAnalysisSummary from './RatioAnalysisSummary';
 import KeyFinancialIndicators from './KeyFinancialIndicators';
+import ResearchInnovation from './ResearchInnovation';
 import WidgetImportanceRanking from './WidgetImportanceRanking';
 import { useAIRecommendations } from '../utils/useAIRecommendations';
 import { FEATURES } from '../utils/config';
@@ -176,6 +177,7 @@ const FullOverview: React.FC<FullOverviewProps> = ({ companyData, competitorData
     financialMetrics: useRef<HTMLDivElement>(null),
     ratioAnalysis: useRef<HTMLDivElement>(null),
     keyFinancialIndicators: useRef<HTMLDivElement>(null),
+    researchMetrics: useRef<HTMLDivElement>(null),
     metricsSection: useRef<HTMLDivElement>(null)
   };
   
@@ -338,6 +340,18 @@ const FullOverview: React.FC<FullOverviewProps> = ({ companyData, competitorData
         <KeyFinancialIndicators 
           companyData={companyData}
           competitorData={competitorData}
+        />
+      </div>
+      
+      {/* Research & Innovation */}
+      <div 
+        ref={widgetRefs.researchMetrics}
+        className={`${topWidgets.includes('researchMetrics') ? 'ring-2 ring-blue-500 dark:ring-blue-400 rounded-lg' : ''} mb-6`}
+      >
+        <ResearchInnovation 
+          companyData={companyData}
+          getLatestRatioValue={getLatestRatioValue}
+          showInOverview={true} 
         />
       </div>
       

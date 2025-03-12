@@ -144,12 +144,3 @@ export const generateGradient = (ctx: CanvasRenderingContext2D, color: string) =
   gradient.addColorStop(1, 'rgba(255, 255, 255, 0.1)');
   return gradient;
 };
-
-// Get colors for competitor with same scheme but different appearance
-export const getCompetitorColors = (colors: Array<{fill: string, border: string}>) => {
-  return colors.map(color => ({
-    fill: color.fill,       // Keep same fill color but can be adjusted if needed
-    border: color.border,
-    borderDash: [5, 5]      // Add dashed lines to distinguish competitor
-  }));
-};

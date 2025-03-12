@@ -1,3 +1,8 @@
+# HOW TO DEVELOP
+start with IDEAS
+clean up and fille from PLAN
+fill plan from README
+
 # FinCompare
 
 A financial data comparison tool for investment insights.

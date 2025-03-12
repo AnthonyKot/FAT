@@ -13,7 +13,7 @@ const FinancialMetrics: React.FC<FinancialMetricsProps> = ({
   getLatestRatioValue
 }) => {
   return (
-    <div className="bg-white dark:bg-dark-surface rounded-lg shadow dark:shadow-gray-800 p-4 sm:p-6">
+    <div id="financialMetrics" className="bg-white dark:bg-dark-surface rounded-lg shadow dark:shadow-gray-800 p-4 sm:p-6">
       <h2 className="text-base sm:text-lg font-semibold text-gray-800 dark:text-dark-text-primary mb-3 sm:mb-4">
         Analysis Summary ({companyData.company.symbol})
       </h2>

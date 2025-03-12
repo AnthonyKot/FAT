@@ -266,7 +266,7 @@ const KeyFinancialIndicators: React.FC<KeyFinancialIndicatorsProps> = ({
   };
 
   return (
-    <div className="bg-white dark:bg-dark-surface rounded-lg shadow dark:shadow-gray-800 p-6 mb-8">
+    <div id="keyFinancialIndicators" className="bg-white dark:bg-dark-surface rounded-lg shadow dark:shadow-gray-800 p-6 mb-8">
       <h2 className="text-lg font-semibold text-gray-800 dark:text-dark-text-primary mb-4">Key Financial Indicators ({companyData.company.symbol})</h2>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         {renderOperatingCashFlow()}

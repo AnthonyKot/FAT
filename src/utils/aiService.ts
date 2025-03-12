@@ -5,8 +5,8 @@ import {
   MetricCategory, 
   METRIC_CATEGORIES
 } from './config';
-import { GeminiRanking } from './GeminiRanking';
-import { MockRanking } from './MockRanking';
+import GeminiRanking from './GeminiRanking';
+import MockRanking from './MockRanking';
 import type { AIRankingService } from './AIRankingInterface';
 
 
