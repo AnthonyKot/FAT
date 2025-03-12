@@ -5,6 +5,10 @@ import {
   MetricCategory, 
   METRIC_CATEGORIES
 } from './config';
+import { GeminiRanking } from './GeminiRanking';
+import { MockRanking } from './MockRanking';
+import type { AIRankingService } from './AIRankingInterface';
+
 
 // Enum for investment focus areas
 export enum InvestmentFocus {
@@ -113,46 +117,12 @@ import { FEATURES } from './config';
 export async function getMetricRecommendations(
   request: AIRecommendationRequest
 ): Promise<AIRecommendationResponse> {
-  // Check if Gemini AI is enabled via feature flag
-  if (FEATURES.ENABLE_AI_RANKING) {
-    try {
-      // Use Gemini API for recommendations
-      return await callGeminiForRecommendations(request);
-    } catch (error) {
-      console.error('Error getting recommendations from Gemini:', error);
-      console.log('Falling back to mock recommendations...');
-      // Fall back to mock data if Gemini API fails
-    }
-  }
-  
-  // If Gemini is disabled or there was an error, use mock data
-  const { companyTicker, industry, metrics, userPreferences } = request;
-  
-  // Get scored metrics, potentially adjusting for user preferences
-  const scoredMetrics = await rankMetricsByImportance(metrics, companyTicker, industry);
-  
-  // Apply user preference adjustments if available
-  if (userPreferences) {
-    applyUserPreferencesToScores(scoredMetrics, userPreferences);
-  }
-  
-  // Get top 5 metrics
-  const topMetrics = scoredMetrics.slice(0, 5).map(item => item.metric);
-  
-  // Generate dashboard analysis based on top metrics
-  const analysisTemplate = getAnalysisTemplate(industry, topMetrics);
-  
-  // Build response
-  const response: AIRecommendationResponse = {
-    scoredMetrics,
-    topMetrics,
-    dashboardAnalysis: analysisTemplate,
-    competitiveInsights: mockCompetitiveInsights(companyTicker, industry, request.competitors),
-    visualizationRecommendations: mockVisualizationRecommendations(industry, metrics),
-    timeSeriesRecommendation: mockTimeSeriesRecommendation(industry)
-  };
-  
-  return response;
+   const service = FEATURES.ENABLE_AI_RANKING ? new GeminiRanking(): new MockRanking();
+  if(service instanceof GeminiRanking && FEATURES.ENABLE_AI_RANKING){
+      return await service.getMetricRecommendations(request)
+   }else{
+      return await service.getMetricRecommendations(request);
+   }
 }
 
 // Helper function to adjust scores based on user preferences

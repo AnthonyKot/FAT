@@ -1,7 +1,27 @@
 // Data Adapter
 // This utility transforms API responses from FinancialModelingPrep into our application's data model
-
+// Calculate Graham Number
+const calculateGrahamNumber = (company: CompanyData): FinancialData[] => {
+  const { incomeStatement, balanceSheet, marketCap, currentPrice } = company;
+  return incomeStatement.eps.map((epsItem, index) => {
+    const bookValuePerShare = balanceSheet.totalEquity[index]?.value / 
+                             (marketCap / currentPrice); // Rough estimate of shares outstanding
+    return {
+      year: epsItem.year,
+      quarter: epsItem.quarter,
+      value: Math.sqrt(15 * epsItem.value * 1.5 * bookValuePerShare)
+    };
+  });
+};
 import { CompanyData, FinancialData, OperationalMetrics, PerShareMetrics, ValuationMetrics } from '../types';
+import { 
+  CompanyProfileResponse,
+  BalanceSheetResponse,
+  IncomeStatementResponse,
+  CashFlowResponse,
+  KeyMetricsResponse,
+  StockQuoteResponse
+} from '../data/sampleApiResponse';
 import { 
   getCompanyProfile, 
   getIncomeStatement, 
@@ -10,6 +30,14 @@ import {
   getKeyMetrics,
   getStockQuote
 } from './apiService';
+import {
+  CompanyProfileResponse,
+  BalanceSheetResponse,
+  IncomeStatementResponse,
+  CashFlowResponse,
+  KeyMetricsResponse,
+  StockQuoteResponse
+} from '../data/sampleApiResponse';
 import {
   CompanyProfileResponse,
   BalanceSheetResponse,
@@ -34,7 +62,9 @@ function calculateGrowth(data: { year: number; value: number }[]): { year: numbe
     const previousValue = sortedData[i - 1].value;
     
     // Skip if previous value is zero or undefined to avoid division by zero
-    if (!previousValue) continue;
+    if (!previousValue || previousValue === 0) {
+        continue;
+    }
     
     const growthRate = (currentValue - previousValue) / Math.abs(previousValue);
     
@@ -47,6 +77,27 @@ function calculateGrowth(data: { year: number; value: number }[]): { year: numbe
   return growthData;
 }
 
+function calculateChange(data: { year: number; value: number }[]): { year: number; value: number }[] {
+  const sortedData = [...data].sort((a, b) => a.year - b.year);
+  const result: { year: number; value: number }[] = [];
+
+  for (let i = 1; i < sortedData.length; i++) {
+    const currentValue = sortedData[i].value;
+    const previousValue = sortedData[i - 1].value;
+    
+    // Skip if previous value is zero or undefined to avoid division by zero
+    if (!previousValue) continue;
+    
+    const changeRate = (currentValue - previousValue);
+    
+    result.push({
+      year: sortedData[i].year,
+      value: changeRate
+    });
+  }
+
+  return result;
+}
 /**
  * Fetches all necessary data for a company and transforms it into our application's format
  * @param ticker - Company stock ticker symbol
@@ -55,34 +106,26 @@ function calculateGrowth(data: { year: number; value: number }[]): { year: numbe
 export async function fetchCompanyData(ticker: string): Promise<CompanyData> {
   try {
     // Fetch all required data in parallel
-    const [
-      profileData, 
-      incomeStatementData, 
-      balanceSheetData, 
+    ] = await Promise.all([
+      companyProfileData,
+      incomeStatementData,
+      balanceSheetData,
       cashFlowData,
       keyMetricsData,
       quoteData
-    ] = await Promise.all([
-      getCompanyProfile(ticker) as Promise<CompanyProfileResponse[]>,
-      getIncomeStatement(ticker) as Promise<IncomeStatementResponse[]>,
-      getBalanceSheet(ticker) as Promise<BalanceSheetResponse[]>,
-      getCashFlowStatement(ticker) as Promise<CashFlowResponse[]>,
-      getKeyMetrics(ticker) as Promise<KeyMetricsResponse[]>,
-      getStockQuote(ticker) as Promise<StockQuoteResponse[]>
     ]);
 
     // Ensure we have valid data
-    if (!profileData[0] || !incomeStatementData[0] || !balanceSheetData[0] || !cashFlowData[0]) {
+    if (!profileData || !incomeStatementData || !balanceSheetData || !cashFlowData || !keyMetricsData || !quoteData) {
       throw new Error(`Incomplete data for ticker: ${ticker}`);
     }
 
-    const profile = profileData[0];
+    const profile = companyProfile[0];
     const quote = quoteData[0];
 
-    // Generate a unique ID for the company
-    const generateId = (symbol: string) => {
-      return `${symbol.toLowerCase()}-${Date.now()}`;
-    };
+        const generateId = (symbol: string) => {
+            return `${symbol.toLowerCase()}-${Date.now()}`;
+        };
 
     // Transform the data into our application's format
     const transformedData: CompanyData = {
@@ -97,9 +140,9 @@ export async function fetchCompanyData(ticker: string): Promise<CompanyData> {
       currentPrice: quote.price || 0,
       yearHigh: quote.yearHigh || 0,
       yearLow: quote.yearLow || 0,
-      dividendYield: (profile.lastDiv / profile.price) || 0, // Calculate yield as dividend/price
+      dividendYield: (profile.lastDiv / quote.price) || 0,
       beta: profile.beta || 0,
-      stockPrices: [], // Will be filled separately with historical data
+      stockPrices: [],
       balanceSheet: {
         totalAssets: balanceSheetData.map(item => ({ 
           year: new Date(item.date).getFullYear(), 
@@ -353,16 +396,18 @@ export async function fetchCompanyData(ticker: string): Promise<CompanyData> {
 export function calculateOperationalMetrics(company: CompanyData): OperationalMetrics {
   const { balanceSheet, incomeStatement, cashFlow } = company;
   
-  // Calculate Days of Inventory On Hand
-  const daysOfInventoryOnHand = balanceSheet.inventory.map((item, index) => {
-    const costOfRevenue = incomeStatement.costOfRevenue[index]?.value || 1;
+// Calculate Days of Inventory On Hand
+const calculateDaysOfInventoryOnHand = (balanceSheet: BalanceSheetData, incomeStatement: IncomeStatementData): FinancialData[] => {
     const daysInYear = 365;
-    return {
-      year: item.year,
-      quarter: item.quarter,
-      value: (item.value / (costOfRevenue / daysInYear))
-    };
-  });
+    return balanceSheet.inventory.map((item, index) => {
+      const costOfRevenue = incomeStatement.costOfRevenue[index]?.value || 1;
+      return {
+        year: item.year,
+        quarter: item.quarter,
+        value: (item.value / (costOfRevenue / daysInYear))
+      };
+    });
+  }
   
   // Calculate Days Payables Outstanding
   const daysPayablesOutstanding = balanceSheet.accountsPayable.map((item, index) => {

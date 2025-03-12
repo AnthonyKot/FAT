@@ -1,6 +1,4 @@
-// Financial Modeling Prep API Service
-// This service handles API calls to FinancialModelingPrep.com
-
+import FinancialModelingPrepAPI from './FinancialModelingPrepAPI';
 import { API_CONFIG, FEATURES } from './config';
 import {
   CompanyProfileResponse,
@@ -8,16 +6,23 @@ import {
   IncomeStatementResponse,
   CashFlowResponse,
   KeyMetricsResponse,
-  StockQuoteResponse
+  StockQuoteResponse,
+  HistoricalPriceResponse
 } from '../data/sampleApiResponse';
-
-// Constants for API configuration
-const API_BASE_URL = API_CONFIG.FMP_BASE_URL;
-// Get API key from config
-const API_KEY = API_CONFIG.FMP_API_KEY;
+import { FEATURES } from './config';
 
 // Import persistent cache
 import { cachedFetch } from './cacheUtils';
+
+export { HistoricalPriceResponse }
+export { CompanyProfileResponse }
+export { BalanceSheetResponse }
+export { IncomeStatementResponse }
+export { CashFlowResponse }
+export { KeyMetricsResponse }
+export { StockQuoteResponse }
+
+const fmpAPI = new FinancialModelingPrepAPI();
 
 /**
  * Gets mock data from sampleApiResponse.ts for testing and development
@@ -35,39 +40,30 @@ async function getMockData(endpoint: string): Promise<any> {
       .replace('-full', '');
     
     // Map some special endpoints to their appropriate mock data type
-    if (mockEndpoint === 'historical-price') {
-      // Create a simple mock for historical prices
-      return {
-        symbol: 'AAPL',
-        historical: Array.from({length: 365}, (_, i) => {
-          const date = new Date();
-          date.setDate(date.getDate() - i);
-          return {
-            date: date.toISOString().split('T')[0],
-            close: 100 + Math.random() * 100,
-            // Add other required fields
-            open: 100 + Math.random() * 100,
-            high: 100 + Math.random() * 100,
-            low: 100 + Math.random() * 100,
-            volume: 1000000 + Math.random() * 5000000
-          };
-        })
-      };
-    }
-    
-    if (mockEndpoint === 'balance-sheet') mockEndpoint = 'balance-sheet';
-    if (mockEndpoint === 'cash-flow') mockEndpoint = 'cash-flow';
-    if (mockEndpoint === 'income') mockEndpoint = 'income-statement';
-    if (mockEndpoint === 'key') mockEndpoint = 'key-metrics';
     
     console.log(`Getting mock data for endpoint: ${mockEndpoint}`);
-    return mockApiResponse(mockEndpoint);
+    
+    // Get data from the correct file
+    const mockData = mockApiResponse(mockDataType);
+    
+    if (!mockData) {
+      throw new Error(`No mock data found for endpoint: ${mockEndpoint}`);
+    }
+    
+    return mockData;
   } catch (error) {
     console.error('Error getting mock data:', error);
-    // Return a simple empty array as fallback
-    return [];
+    return {};
   }
 }
+
+const MOCK_DATA_MAP: { [key: string]: string } = {
+  'balance-sheet': 'balance-sheet',
+  'cash-flow': 'cash-flow',
+  'income-statement': 'income-statement',
+  'key-metrics': 'key-metrics',
+};
+
 
 /**
  * Makes a request to the FinancialModelingPrep API
@@ -100,7 +96,8 @@ async function apiRequest<T>(endpoint: string, params: Record<string, string> = 
         const response = await fetch(url);
         
         if (!response.ok) {
-          throw new Error(`API request failed with status: ${response.status}`);
+          const errorResponse = await response.text();
+          throw new Error(`API request failed with status: ${response.status}, message: ${errorResponse}`);
         }
         
         return await response.json();
@@ -118,55 +115,7 @@ async function apiRequest<T>(endpoint: string, params: Record<string, string> = 
  * @param ticker - Company stock ticker symbol
  */
 export async function getCompanyProfile(ticker: string): Promise<CompanyProfileResponse[]> {
-  if (!FEATURES.ENABLE_REAL_API) {
-    // If we're using mock data, check if we have a profile for this ticker
-    const { mockCompanies } = await import('../data/mockData');
-    const mockCompany = mockCompanies.find(c => c.symbol === ticker);
-    
-    if (mockCompany) {
-      // Create a mock profile based on the mock company data
-      return [{
-        symbol: mockCompany.symbol,
-        price: 100 + Math.random() * 200,
-        beta: 1 + Math.random(),
-        volAvg: 1000000 + Math.random() * 10000000,
-        mktCap: 10000000000 + Math.random() * 100000000000,
-        lastDiv: Math.random() * 5,
-        range: "50-150",
-        changes: Math.random() * 10 - 5,
-        companyName: mockCompany.name,
-        currency: "USD",
-        cik: "0000000000",
-        isin: "US0000000000",
-        cusip: "000000000",
-        exchange: "NASDAQ Global Select",
-        exchangeShortName: "NASDAQ",
-        industry: mockCompany.industry || "Technology",
-        website: `https://www.${mockCompany.symbol.toLowerCase()}.com`,
-        description: `${mockCompany.name} is a leading company in the ${mockCompany.industry} industry.`,
-        ceo: "John Doe",
-        sector: mockCompany.industry || "Technology",
-        country: "US",
-        fullTimeEmployees: "10000",
-        phone: "(123) 456-7890",
-        address: "123 Main St",
-        city: "New York",
-        state: "NY",
-        zip: "10001",
-        dcfDiff: 10,
-        dcf: 100,
-        image: mockCompany.logo || `https://via.placeholder.com/150?text=${mockCompany.symbol}`,
-        ipoDate: "2000-01-01",
-        defaultImage: false,
-        isEtf: false,
-        isActivelyTrading: true,
-        isAdr: false,
-        isFund: false
-      }];
-    }
-  }
-  
-  return apiRequest(`/profile/${ticker}`);
+  return fmpAPI.get(`/profile/${ticker}`);
 }
 
 /**
@@ -175,7 +124,7 @@ export async function getCompanyProfile(ticker: string): Promise<CompanyProfileR
  * @param limit - Number of years to retrieve (default: 5)
  */
 export async function getIncomeStatement(ticker: string, limit: number = 5): Promise<IncomeStatementResponse[]> {
-  return apiRequest(`/income-statement/${ticker}`, { limit: limit.toString() });
+  return fmpAPI.get(`/income-statement/${ticker}`, { limit: limit.toString() });
 }
 
 /**
@@ -184,7 +133,7 @@ export async function getIncomeStatement(ticker: string, limit: number = 5): Pro
  * @param limit - Number of years to retrieve (default: 5)
  */
 export async function getBalanceSheet(ticker: string, limit: number = 5): Promise<BalanceSheetResponse[]> {
-  return apiRequest(`/balance-sheet-statement/${ticker}`, { limit: limit.toString() });
+  return fmpAPI.get(`/balance-sheet-statement/${ticker}`, { limit: limit.toString() });
 }
 
 /**
@@ -193,7 +142,7 @@ export async function getBalanceSheet(ticker: string, limit: number = 5): Promis
  * @param limit - Number of years to retrieve (default: 5)
  */
 export async function getCashFlowStatement(ticker: string, limit: number = 5): Promise<CashFlowResponse[]> {
-  return apiRequest(`/cash-flow-statement/${ticker}`, { limit: limit.toString() });
+  return fmpAPI.get(`/cash-flow-statement/${ticker}`, { limit: limit.toString() });
 }
 
 /**
@@ -202,7 +151,7 @@ export async function getCashFlowStatement(ticker: string, limit: number = 5): P
  * @param limit - Number of years to retrieve (default: 5)
  */
 export async function getKeyMetrics(ticker: string, limit: number = 5): Promise<KeyMetricsResponse[]> {
-  return apiRequest(`/key-metrics/${ticker}`, { limit: limit.toString() });
+  return fmpAPI.get(`/key-metrics/${ticker}`, { limit: limit.toString() });
 }
 
 /**
@@ -211,7 +160,7 @@ export async function getKeyMetrics(ticker: string, limit: number = 5): Promise<
  * @param limit - Number of years to retrieve (default: 5)
  */
 export async function getFinancialGrowth(ticker: string, limit: number = 5): Promise<any> {
-  return apiRequest(`/financial-growth/${ticker}`, { limit: limit.toString() });
+  return fmpAPI.get(`/financial-growth/${ticker}`, { limit: limit.toString() });
 }
 
 /**
@@ -219,7 +168,7 @@ export async function getFinancialGrowth(ticker: string, limit: number = 5): Pro
  * @param ticker - Company stock ticker symbol
  */
 export async function getStockQuote(ticker: string): Promise<StockQuoteResponse[]> {
-  return apiRequest(`/quote/${ticker}`);
+  return fmpAPI.get(`/quote/${ticker}`);
 }
 
 /**
@@ -229,29 +178,7 @@ export async function getStockQuote(ticker: string): Promise<StockQuoteResponse[
  * @param to - End date (YYYY-MM-DD)
  */
 export async function getHistoricalStockPrices(ticker: string, from: string, to: string): Promise<HistoricalPriceResponse> {
-  return apiRequest(`/historical-price-full/${ticker}`, { from, to });
-}
-
-/**
- * Historical prices response interface
- */
-export interface HistoricalPriceResponse {
-  symbol: string;
-  historical: {
-    date: string;
-    open: number;
-    high: number;
-    low: number;
-    close: number;
-    adjClose: number;
-    volume: number;
-    unadjustedVolume: number;
-    change: number;
-    changePercent: number;
-    vwap: number;
-    label: string;
-    changeOverTime: number;
-  }[];
+  return fmpAPI.get(`/historical-price-full/${ticker}`, { from, to });
 }
 
 /**
@@ -280,22 +207,12 @@ export async function searchCompanies(query: string, limit: number = 10): Promis
   
   try {
     // Get search results
-    const results = await apiRequest<{symbol: string, name: string, currency: string, stockExchange: string, exchangeShortName: string}[]>(`/search`, { query, limit: limit.toString() });
+    const results = await fmpAPI.get<{symbol: string, name: string, currency: string, stockExchange: string, exchangeShortName: string}[]>(`/search`, { query, limit: limit.toString() });
     
     // Filter to only US exchanges (most free plans only support US stocks)
     const usExchangeIdentifiers = ['NYSE', 'NASDAQ', 'AMEX', 'CBOE', 'US'];
     
-    return results.filter(item => {
-      // Check if exchange appears to be US-based
-      const isUSExchange = 
-        usExchangeIdentifiers.some(id => 
-          item.exchangeShortName?.includes(id) || 
-          item.stockExchange?.includes(id)
-        );
-      
-      // Keep US exchanges and ones with USD currency
-      return isUSExchange || item.currency === 'USD';
-    });
+    return results;
   } catch (error) {
     console.error('Error searching companies:', error);
     // Return empty array in case of error

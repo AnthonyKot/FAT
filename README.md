@@ -37,14 +37,12 @@ npm run dev
 
 Access the app at http://localhost:5173
 
-## The next things to implement
+## The next things to implement (take from TODO and PLAN md)
 
 Competitor Selection Encouragement (1 day)
 
 Quickly enhances user engagement by explicitly prompting users to explore deeper comparative insights.
 Actionable Insights Upon Stock Selection (1-2 days)
-
-Immediately delivers value, significantly boosting user satisfaction and retention by providing instant, meaningful insights after selecting a stock.
 
 ## Development Notes
 
@@ -55,49 +53,6 @@ UI components are in `src/components/` with customizable widgets for future flex
 ## TODO this sprint
 
 1. AI-driven Similarity and Recommendations
-
-DR prompt "I need an article about comparing predicting specific company price based on historical key indicators (like PE, margin, profic and etc) other company but 1-2-3 years ago" + " I need an example of such framework applied to specific companies pairs. I care about indicators were used and selection of "similar" company approach (like calculation cos distance between indicators or something like that)"
-
-Academic research has applied methods like k-medians clustering on financial ratios​
-BACKOFFICE.BIBLIO.UGENT.BE
- and even cosine or Mahalanobis distance on entire financial statement vectors​
-BACKOFFICE.BIBLIO.UGENT.BE
- to identify comparable firms
-
-
-
-Indicator	PayPal (2016) Historical​
-NEWSROOM.PAYPAL-CORP.COM
-​
-MACROTRENDS.NET
-Square/Block (2019) Current​
-S21.Q4CDN.COM
-​
-FINANCECHARTS.COM
-Revenue	$10.84 billion (2016)​
-NEWSROOM.PAYPAL-CORP.COM
-$4.71 billion (2019)​
-S21.Q4CDN.COM
-Revenue Growth (YoY)	+17% (2016)​
-NEWSROOM.PAYPAL-CORP.COM
-+43% (2019)​
-S21.Q4CDN.COM
-Net Income	$1.40 billion (2016)​
-MACROTRENDS.NET
-$0.375 billion (2019)​
-FINANCECHARTS.COM
-Net Profit Margin	12.9% (profitable)	8.0% (moderate profit)
-P/E Ratio (Year-end)	~34 (at end 2016)​
-MACROTRENDS.NET
-~70 (at end 2019)*
-Debt-to-Equity (D/E)	~0.4 (low leverage, est.)	~0.5 (low-moderate, est.)
-Active Customer Accounts	~197 million (2016)**	~24 million (2019)**
-Stock Price Outcome (analog’s next 2–3 years)	+174% (PayPal 2016–2019)​
-MACROTRENDS.NET
-+>200% (Square 2019–2021)​
-COMPANIESMARKETCAP.COM
-​
-NETCIALS.COM
 
 Implement AI-based sorting by similarity for companies.
 
@@ -362,3 +317,46 @@ Maintain clarity, brevity, and neutrality throughout your analysis.
 Start with Trending Comparisons and Industry-Specific Metrics, as these will quickly demonstrate tangible value with minimal complexity.
 Follow up with Executive Summaries and Multi-year Price Horizon Analysis after verifying reliability and prompt effectiveness.
 Consider the Specific Metric Categories last, as these may require more refinement and experimentation.
+
+
+** NOTES
+
+Profitability Metrics
+	•	Net Profit Margin
+Why? It measures how much of every revenue dollar translates into profit, indicating operational efficiency and pricing power.
+	•	Operating Profit Margin
+Why? It captures the efficiency of core business operations, excluding non-operational factors like financing costs.
+	•	Return on Equity (ROE)
+Why? A key indicator of management effectiveness, ROE shows how well a company uses shareholders’ funds to generate earnings.
+	•	Return on Assets (ROA)
+Why? This reflects how effectively a company uses its asset base to generate profit.
+
+⸻
+
+Growth Metrics
+	•	Revenue Growth Rate
+Why? Consistent revenue growth signals market acceptance and business expansion, essential for long-term value creation.
+	•	Earnings Growth Rate
+Why? Tracking the growth in earnings provides insight into the company’s ability to improve profitability over time.
+	•	Free Cash Flow Growth
+Why? Free cash flow is critical for funding future investments, debt reduction, or returning capital to shareholders. Growth in FCF can indicate strong underlying business performance.
+
+⸻
+
+Financial Health Metrics
+	•	Debt-to-Equity Ratio
+Why? This ratio offers insight into the company’s financial leverage and risk profile. A lower ratio generally implies a safer capital structure.
+	•	Free Cash Flow Yield
+Why? It provides a measure of how effectively a company generates cash relative to its market valuation, highlighting sustainability.
+
+⸻
+
+PAYPAL case
+
+Revenue	$10.84 billion (2016)​
+Revenue Growth (YoY)
+Net Income
+Net Profit Margin	12.9% (profitable)	8.0% (moderate profit)
+P/E Ratio
+Debt-to-Equity (D/E)	~0.4 (low leverage, est.)	~0.5 (low-moderate, est.)
+Active Customer Accounts	~197 million (2016)**	~24 million (2019)**

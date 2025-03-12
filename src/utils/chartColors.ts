@@ -124,6 +124,15 @@ export const getCompetitorColors = (colors: Array<{fill: string, border: string}
 };
 
 // Helper to get a color for a specific index, ensuring we cycle through available colors
+export const getChartColors = (
+  colorScheme?: 'income' | 'balance' | 'cashflow' | 'valuation' | 'profitability' | 'growth' | 'risk' | 'efficiency'
+) => {
+  if (!colorScheme) return [companyColors.primary, companyColors.secondary];
+
+  const colors = chartColorSchemes[colorScheme];
+  return colors || [companyColors.primary, companyColors.secondary];
+};
+
 export const getColorByIndex = (index: number): {fill: string, border: string} => {
   return categoryColors[index % categoryColors.length];
 };
@@ -134,4 +143,13 @@ export const generateGradient = (ctx: CanvasRenderingContext2D, color: string) =
   gradient.addColorStop(0, color);
   gradient.addColorStop(1, 'rgba(255, 255, 255, 0.1)');
   return gradient;
+};
+
+// Get colors for competitor with same scheme but different appearance
+export const getCompetitorColors = (colors: Array<{fill: string, border: string}>) => {
+  return colors.map(color => ({
+    fill: color.fill,       // Keep same fill color but can be adjusted if needed
+    border: color.border,
+    borderDash: [5, 5]      // Add dashed lines to distinguish competitor
+  }));
 };

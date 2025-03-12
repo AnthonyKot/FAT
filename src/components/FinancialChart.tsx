@@ -1,10 +1,12 @@
 import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend, ChartData as ChartJSData, ChartOptions } from 'chart.js';
 import { Bar, Line } from 'react-chartjs-2';
 import { ChartData } from '../types';
 import ChartTooltip from './ChartTooltip';
 import { getTermDefinition } from '../utils/financialTerms';
-import { chartColorSchemes, getColorByIndex } from '../utils/chartColors';
+import { getChartColors, getCompetitorColors } from '../utils/chartColors';
+import { formatCurrencyAbbreviated, formatLargeNumber } from '../utils/formatters';
 import { formatCurrencyAbbreviated, formatLargeNumber } from '../utils/formatters';
 
 // Register ChartJS components
@@ -30,7 +32,6 @@ interface FinancialChartProps {
   title?: string;
   termKey?: string; // Key to find the financial term definition
   description?: string; // Optional custom description
-  colorScheme?: 'income' | 'balance' | 'cashflow' | 'valuation' | 'profitability' | 'growth' | 'risk' | 'efficiency';
 }
 
 const FinancialChart: React.FC<FinancialChartProps> = ({
@@ -44,43 +45,9 @@ const FinancialChart: React.FC<FinancialChartProps> = ({
   title,
   termKey,
   description,
-  colorScheme
 }) => {
   const chartRef = useRef<any>(null);
   
-  // Apply consistent colors based on the colorScheme prop or default to index-based colors
-  const getChartColors = () => {
-    // Get datasets separated by primary company and competitor
-    const labels = chartData.datasets.map(d => d.label);
-    const primaryDatasets = chartData.datasets.filter(ds => ds.label === labels[0]);
-    const competitorDatasets = chartData.datasets.filter(ds => ds.label === labels[1]);
-    
-    // Determine colors based on colorScheme or fallback to default pattern
-    let colors: Array<{fill: string, border: string}> = [];
-    
-    if (colorScheme && chartColorSchemes[colorScheme]) {
-      // Use predefined color scheme if specified
-      colors = [...chartColorSchemes[colorScheme]];
-    } else {
-      // Fallback to getting colors by index
-      colors = [0, 1].map(idx => getColorByIndex(idx));
-    }
-    
-    const coloredPrimaryDatasets = [{
-      ...primaryDatasets[0],
-      backgroundColor: colors[0].fill,
-      borderColor: colors[0].border,
-    }];
-
-    const coloredCompetitorDatasets = [{
-      ...competitorDatasets[0],
-      backgroundColor: colors[1].fill,
-      borderColor: colors[1].border,
-      borderDash: [5, 5],
-    }];
-    
-    return [...coloredPrimaryDatasets, ...coloredCompetitorDatasets];
-  };
   
   // Apply gradients for line charts
   useEffect(() => {
@@ -104,6 +71,7 @@ const FinancialChart: React.FC<FinancialChartProps> = ({
     }
   }, [chartType, chartData]);
 
+  // Convert custom data format to Chart.js format with consistent colors
   // Convert custom data format to Chart.js format with consistent colors
   const data: ChartJSData<'line' | 'bar'> = {
     labels: chartData.labels,
@@ -133,7 +101,7 @@ const FinancialChart: React.FC<FinancialChartProps> = ({
       if (term.includes('P/S') || term === 'PS Ratio') return 'psRatio';
       if (term.includes('EV/EBITDA')) return 'evToEbitda';
       if (term === 'ROE') return 'returnOnEquity';
-      if (term === 'ROA') return 'returnOnAssets';
+      if (term === 'ROA'; return 'returnOnAssets';
       
       return camelCase;
     }
