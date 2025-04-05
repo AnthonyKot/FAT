@@ -1,7 +1,7 @@
 # HOW TO DEVELOP
-start with IDEAS
-clean up and fille from PLAN
-fill plan from README
+Start with IDEAS
+Clean up and fill from PLAN
+Fill plan from README
 
 # FinCompare
 
