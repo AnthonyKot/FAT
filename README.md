@@ -1,59 +1,115 @@
-# HOW TO DEVELOP
-start with IDEAS
-clean up and fille from PLAN
-fill plan from README
-
 # FinCompare
 
 A financial data comparison tool for investment insights.
 
+![FinCompare Logo](https://via.placeholder.com/800x400?text=FinCompare+Dashboard)
+
 ## Overview
 
-Compare financial data between companies, with key metrics, charts, and analysis.
+FinCompare is a financial data visualization tool designed to help investors make better decisions through comparative analysis of company data. The application allows users to select companies, visualize their financial metrics through interactive charts and tables, and gain AI-powered insights about which metrics matter most for specific industries and companies.
 
 ## Features
 
-- Company and competitor selection
-- Financial dashboards and metrics
-- Interactive stock price charts
-- Financial statements comparison
-- Ratio analysis
-- AI-powered metric importance ranking (powered by Google's Gemini API)
-- Personalized metric recommendations based on user preferences
-- Industry-specific insights and analysis
-- Visualization recommendations for optimal data presentation
+- **Company Selection**: Search and select any publicly traded company
+- **Competitor Analysis**: Compare financial data between selected companies
+- **Financial Dashboards**: Comprehensive view of critical financial metrics
+- **Interactive Charts**: Visualize stock price history and financial data
+- **Financial Statement Analysis**: Compare income statements, balance sheets, and cash flows
+- **Ratio Analysis**: View and compare key financial ratios between companies
+- **AI-Powered Insights**: Get metric importance rankings powered by Google's Gemini API
+- **Financial Health Evaluation**: Assess the financial health of companies
+- **Research & Innovation Metrics**: Track R&D investments and effectiveness
+- **Personalized Recommendations**: Receive tailored metric suggestions based on industry and context
+- **Dark/Light Mode**: Adjust the UI to your preference
 
 ## Tech Stack
 
-- React
-- TypeScript
-- TailwindCSS
-- Mock data (API integration planned)
+- **Frontend**: React, TypeScript
+- **Styling**: TailwindCSS
+- **Charts**: Chart.js, Recharts
+- **AI Integration**: Google's Gemini API
+- **Data Source**: Financial Modeling Prep API (using mock data for development)
 
 ## Getting Started
 
-```bash
-# Install dependencies
-npm install
+### Prerequisites
 
-# Start development server
-npm run dev
+- Node.js (v16+)
+- npm or pnpm
+
+### Installation
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/AnthonyKot/FAT.git
+   cd FAT
+   ```
+
+2. Install dependencies:
+   ```bash
+   npm install
+   # or
+   pnpm install
+   ```
+
+3. Start the development server:
+   ```bash
+   npm run dev
+   # or
+   pnpm dev
+   ```
+
+4. Access the application in your browser:
+   ```
+   http://localhost:5173
+   ```
+
+## Project Structure
+
+```
+src/
+├── components/       # UI components for financial visualization
+├── utils/           # Utility functions and services
+│   ├── aiService.ts # AI recommendation service
+│   ├── apiService.ts # API client
+│   ├── dataAdapter.ts # Data transformation
+│   └── dataFetcher.ts # Data fetching orchestration
+├── data/            # Mock data for development
+├── types/           # TypeScript type definitions
+└── App.tsx          # Main application component
 ```
 
-Access the app at http://localhost:5173
+## Data Sources
 
-## The next things to implement (take from TODO and PLAN md)
+The application currently uses mock data located in the `src/data/` directory. Future versions will integrate with the Financial Modeling Prep API for real-time financial data.
 
-Competitor Selection Encouragement (1 day)
+## AI Integration
 
-Quickly enhances user engagement by explicitly prompting users to explore deeper comparative insights.
-Actionable Insights Upon Stock Selection (1-2 days)
+FinCompare uses Google's Gemini API to provide AI-powered insights and recommendations. The AI model:
 
-## Development Notes
+- Ranks the importance of financial metrics based on industry and company context
+- Provides personalized recommendations for metrics to focus on
+- Suggests visualization approaches for optimal data presentation
 
-Currently uses mock data. See `src/data/` directory.
+## Roadmap
 
-UI components are in `src/components/` with customizable widgets for future flexibility.
+Future development plans include:
+
+- Full integration with Financial Modeling Prep API
+- Enhanced AI-driven similarity and recommendations
+- Actionable insights upon stock selection
+- Improved comparative chart visualization
+- Metric tooltips for financial education
+- Export functionality for reports
+- User accounts and saved comparisons
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
 
 ## TODO this sprint
 
