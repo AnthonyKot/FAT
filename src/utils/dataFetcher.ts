@@ -2,7 +2,7 @@
 import { CompanyData } from '../types';
 import { mockCompanyData } from '../data/mockData';
 import { fetchCompanyData } from './dataAdapter';
-import { FEATURES } from './config';
+import { FEATURES } from './src/utils/config';
 
 /**
  * Fetch company data either from the API or mock data

@@ -1,5 +1,5 @@
 import APIClient from './APIInterface';
-import { API_CONFIG, FEATURES } from './config';
+import { API_CONFIG, FEATURES } from './src/utils/config';
 import {
   CompanyProfileResponse,
   BalanceSheetResponse,

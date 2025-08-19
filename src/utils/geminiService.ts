@@ -1,4 +1,4 @@
-import { API_CONFIG, FinancialMetric, FEATURES } from './config';
+import { API_CONFIG, FinancialMetric, FEATURES } from './src/utils/config';
 import { 
   AIRecommendationRequest, 
   AIRecommendationResponse, 
