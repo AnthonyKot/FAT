@@ -1,5 +1,5 @@
 import FinancialModelingPrepAPI from './FinancialModelingPrepAPI';
-import { API_CONFIG, FEATURES } from './config';
+import { API_CONFIG, FEATURES } from './src/utils/config';
 // Import types directly from the types.ts file instead
 import { cachedFetch } from './cacheUtils';
 
